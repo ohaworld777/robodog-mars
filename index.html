@@ -340,7 +340,7 @@ const CMDS = [
   {id:'open',  ko:'눈 떠',     key:'X', words:['눈떠','눈뜨','눈떴','눈을떠','눈더','눈또','떠라'], desc:'깨어나며 눈빛 번쩍! 적이 멈칫'},
   {id:'red',   ko:'빨간불',    key:'R', words:['빨간','빨강','빨갛','빨건'],                desc:'빨간 적에게 레이저 3배'},
   {id:'purple',ko:'보라불',    key:'T', words:['보라','보랏','보래','볼라'],                desc:'보라 적에게 레이저 3배'},
-  {id:'fire',  ko:'발사',      key:'F', words:['발사','발싸','팔사','발샤','바사','쏴','쏘아','쏘라','슛','빵야'], desc:'가까운 적에게 레이저 4연발!'},
+  {id:'fire',  ko:'발사',      key:'F', words:['발사','발싸','팔사','발샤','바사','빨사','파사','바싸','박사','팔자','벌써','발상','말사','발자','밟아','판사','갈사','할사','발사아','발쌰','fire','파이어','쏴','쏘아','쏘라','쏴라','슛','빵야','빵빵'], desc:'가까운 적에게 레이저 4연발!'},
   {id:'bark',  ko:'짖어',      key:'B', words:['짖어','짖','지저','지져','짓어','지즈','멍멍','멍'], desc:'멍! 주변 적을 멀리 밀어내요'},
   {id:'fart',  ko:'방귀',      key:'G', words:['방귀','방구','방기','빵구','뿡'],           desc:'뿡! 구름 속 적이 느려져요'},
   {id:'sing',  ko:'노래해줘',  key:'V', words:['노래','노레','놀래'],                       desc:'「반짝반짝 작은별」을 불러 기지를 고치고 방어탑이 빨라져요'},
@@ -1148,7 +1148,7 @@ function issue(id){
     case 'red': dog.led = 'red'; applyLed(); say('“빨간불”'); SFX.tower(); done = true; break;
     case 'purple': dog.led = 'purple'; applyLed(); say('“보라불”'); SFX.tower(); done = true; break;
     case 'fire':
-      if (!needAwake()) break; if (dog.cd.fire > 0) break; if (!needBattery(1.5)) break;
+      if (!needAwake()) break; if (dog.cd.fire > 0){ dog.fireQueue = Math.min(3, (dog.fireQueue || 0) + 1); break; } if (!needBattery(1.5)) break;
       dog.battery -= 1.5; dog.cd.fire = .75; dog.burst = 4; dog.burstT = 0;
       say(nearestEnemy(12) ? '“발사” 피융!' : '“발사”… 근처에 적이 없어요'); done = true; break;
     case 'bark':
@@ -1233,17 +1233,30 @@ function micUnavailable(msg){
   document.querySelectorAll('.rail, .cluster').forEach(r => { r.classList.remove('nudge'); void r.offsetWidth; r.classList.add('nudge'); });
   if (G.state === 'play' || G.state === 'prewave') showBanner('마이크를 쓸 수 없어요 — 화면 버튼으로 명령하세요', 3);
 }
+// 들은 말에서 명령을 순서대로 모두 꺼냄: "발사 발사 짖어" → [fire, fire, bark]
+function extractCommands(text, final){
+  const toks = (text || '').trim().split(/\s+/).filter(Boolean), out = [];
+  for (let i = 0; i < toks.length; i++){
+    const pair = i + 1 < toks.length ? toks[i] + toks[i + 1] : null;
+    let id = pair ? matchCommand(pair) : null;
+    if (id && matchCommand(toks[i]) === id && !/^(가|가자)$/.test(toks[i + 1])) id = null;   // 두 단어가 각각 따로 명령인 경우
+    if (id){ out.push(id); i++; continue; }
+    id = matchCommand(toks[i]) || (final ? fuzzyCommand(toks[i]) || (pair ? fuzzyCommand(pair) : null) : null);
+    if (id){ out.push(id); if (pair && final && !matchCommand(toks[i]) && !fuzzyCommand(toks[i])) i++; }
+  }
+  return out;
+}
+const doneCount = new Map();   // 줄(결과)마다 이미 실행한 명령 수
 function handleSpeech(ev){
   for (let i = ev.resultIndex; i < ev.results.length; i++){
     const r = ev.results[i], txt = r[0].transcript.trim(); if (!txt) continue;
     showHeardTag(txt);
-    let id = null;
-    for (let k = 0; k < r.length && !id; k++) id = matchCommand(r[k].transcript);              // 폰이 준 후보 답을 모두 확인
-    if (!id && r.isFinal) for (let k = 0; k < r.length && !id; k++) id = fuzzyCommand(r[k].transcript);   // 끝난 말은 비슷한 소리까지
-    const key = i + ':' + (rec._sid || 0);
-    if (id && fired.get(key) !== id){ fired.set(key, id); issue(id); setHeard(`알아들었어요: “${CMD[id].ko}”`); }
-    else if (!id) setHeard(r.isFinal ? `“${txt}”… 모르는 명령이에요` : `듣는 중: “${txt}”`);
-    if (fired.size > 60) fired.clear();
+    let cmds = [];
+    for (let k = 0; k < r.length; k++){ const c = extractCommands(r[k].transcript, r.isFinal); if (c.length > cmds.length) cmds = c; }   // 후보 중 명령이 가장 많은 것
+    const key = i + ':' + (rec._sid || 0), done = doneCount.get(key) || 0;
+    if (cmds.length > done){ cmds.slice(done).forEach(id => issue(id)); doneCount.set(key, cmds.length); setHeard(`알아들었어요: “${CMD[cmds[cmds.length - 1]].ko}”`); }
+    else if (!cmds.length) setHeard(r.isFinal ? `“${txt}”… 모르는 명령이에요` : `듣는 중: “${txt}”`);
+    if (doneCount.size > 80) doneCount.clear();
   }
 }
 // 마이크는 한 번 켜면 끌 때까지 계속 들음: 같은 인식기를 계속 다시 시작해서 허용 창이 다시 뜨지 않게 함
@@ -1421,6 +1434,7 @@ function update(dt){
 
   // ---- 로봇개 이동 (자유 이동) ----
   for (const k in dog.cd) dog.cd[k] = Math.max(0, dog.cd[k] - dt);
+  if (dog.fireQueue > 0 && dog.cd.fire <= 0 && dog.burst <= 0){ dog.fireQueue--; issue('fire'); }
   const speedV = {normal:3.4, fast:6.2, slow:1.6}[dog.speed], drain = {normal:.7, fast:1.8, slow:.25}[dog.speed];   // 배터리 사용 시간 2배
   let moving = false;
   if (dog.awake && dog.battery > 0){
