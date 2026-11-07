@@ -47,13 +47,18 @@ button{touch-action:manipulation}
   padding:6px 14px;border-radius:16px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.35);transition:opacity .2s}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:#fffdf8}
 .bubble.sleep{background:#2d2a44;color:#cfd2ff}.bubble.sleep::after{border-top-color:#2d2a44}
+/* 손가락 조이스틱: 땅을 누른 자리에 나타나고, 끄는 방향으로 로봇개가 달림 */
+#joy{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:2px solid rgba(255,214,170,.5);background:rgba(34,22,30,.32);pointer-events:none;display:none}
+#joy::before{content:"";position:absolute;inset:18px;border-radius:50%;border:1px dashed rgba(255,214,170,.35)}
+#joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9b0,#ffd166 55%,#d9a21c);box-shadow:0 4px 12px rgba(0,0,0,.45)}
+#joy.on{display:block}
 .float{position:absolute;transform:translate(-50%,-50%);font-family:var(--display);font-size:18px;text-shadow:0 2px 0 rgba(0,0,0,.5);white-space:nowrap}
 .padlabel,.placelabel{position:absolute;transform:translate(-50%,-50%);font-family:var(--ui);font-size:13px;background:rgba(20,14,26,.8);border:1px solid rgba(255,209,102,.6);color:var(--gold);padding:2px 8px;border-radius:8px;white-space:nowrap}
 .placelabel{border-color:rgba(255,255,255,.25);color:#f3e6d6;font-size:12px}
 /* 안내·미션 */
-.banner{position:absolute;left:50%;top:32%;transform:translate(-50%,-50%);text-align:center;font-family:var(--display);font-size:clamp(22px,4.2vw,38px);
+.banner{pointer-events:none;position:absolute;left:50%;top:32%;transform:translate(-50%,-50%);text-align:center;font-family:var(--display);font-size:clamp(22px,4.2vw,38px);
   color:#fff;text-shadow:0 3px 0 rgba(60,20,10,.7),0 0 18px rgba(0,0,0,.4);width:min(92vw,820px);text-wrap:balance;transition:opacity .4s}
-.mission{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 100px);width:min(300px,60vw);
+.mission{pointer-events:none;position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 100px);width:min(300px,60vw);
   background:#1d2a3a;border:2px solid #7fd4ff;border-radius:14px;padding:10px 12px;display:grid;gap:6px;font-family:var(--ui)}
 .heardtag{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 96px);background:rgba(20,14,26,.86);color:#fff;
   font-family:var(--ui);font-size:17px;padding:6px 14px;border-radius:12px;border:1px solid rgba(255,209,102,.6);max-width:calc(100vw - 32px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
@@ -235,7 +240,7 @@ h1 span{color:var(--orange)}
         <button class="iconbtn" id="muteBtn" type="button" aria-label="소리"><span class="lbl">소리 M</span><span class="ico">♪</span></button>
       </div>
       <canvas id="mini" width="480" height="480" aria-label="화성 지도: 기지, 분화구, 적, 로봇개 위치"></canvas>
-      <div class="minicap">노랑 = 로봇개 · 땅을 누르면 그곳으로 가요</div>
+      <div class="minicap">노랑 = 로봇개 · 땅을 누르면 그곳으로, 끌면 그 방향으로</div>
     </div>
   </div>
 
@@ -296,7 +301,7 @@ h1 span{color:var(--orange)}
       <details class="cmds" id="cmdDetails">
         <summary>명령어 15가지와 놀이 방법 보기</summary>
         <div class="cmdtable" id="cmdTable"></div>
-        <p class="note">마이크를 켜 두고 명령을 또박또박 말하면 로봇개가 알아들어요. 화면 버튼도 언제든 함께 쓸 수 있고, 땅을 누르면 그곳으로 걸어가요.<br>적 몸 색과 같은 불빛을 켜고 “발사”하면 한 번에 쓰러뜨려요. 눈을 감고 쉬면 배터리가 차고, 광물을 하나 주울 때마다 기지 앞 방어탑이 한 단씩 올라가 10단이면 완성돼요.</p>
+        <p class="note">마이크를 켜 두고 명령을 또박또박 말하면 로봇개가 알아들어요. 화면 버튼도 언제든 함께 쓸 수 있고, 땅을 톡 누르면 그곳으로 걸어가고, 손가락으로 누른 채 끌면 끄는 방향으로 달려요.<br>적 몸 색과 같은 불빛을 켜고 “발사”하면 한 번에 쓰러뜨려요. 눈을 감고 쉬면 배터리가 차고, 광물을 하나 주울 때마다 기지 앞 방어탑이 한 단씩 올라가 10단이면 완성돼요.</p>
         <p class="note micnote">핸드폰은 Chrome(안드로이드)이나 Safari(아이폰)로 열어 주세요. 카카오톡 안에서 열면 마이크가 안 될 수 있어요.<br>마이크 허용 창이 뜨면 크롬은 <b>「사이트 방문 시 허용」</b>을 고르면 다음부터 묻지 않아요. 아이폰은 주소창의 <b>가가 → 웹사이트 설정 → 마이크 → 허용</b>으로 바꿔 두세요.</p>
       </details>
     </div>
@@ -863,6 +868,7 @@ targetMark.rotation.x = -Math.PI / 2; targetMark.visible = false; scene.add(targ
 /* ---------------- 오버레이 ---------------- */
 const overlay = $('#overlay');
 const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.style.opacity = 0; overlay.appendChild(bubble);
+const joyEl = document.createElement('div'); joyEl.id = 'joy'; joyEl.innerHTML = '<i></i>'; overlay.appendChild(joyEl); const joyKnob = joyEl.firstElementChild;
 const tmpV = new THREE.Vector3();
 function toScreen(v){ tmpV.copy(v).project(camera); return {x:(tmpV.x + 1) / 2 * innerWidth, y:(1 - tmpV.y) / 2 * innerHeight, ok: tmpV.z < 1 && Math.abs(tmpV.x) < 1.1 && Math.abs(tmpV.y) < 1.1}; }
 const floats = [];
@@ -1097,6 +1103,7 @@ function resetGame(){
   $('#stageLabel').textContent = '화성탐사기지 · ' + D.label;
 }
 function startGame(){ ac(); prepBark(); resetGame(); $('#startScreen').hidden = true; $('#endScreen').hidden = true; startPrewave(); say('숨은 적을 찾아 “발사”!');
+  setTimeout(() => { if (G.state === 'prewave') showBanner(TOUCH ? '손가락으로 땅을 누른 채 끌면 그 방향으로 달려요' : '땅을 누른 채 마우스를 끌면 그 방향으로 달려요', 4); }, 6500);
   for (let i = 0; i < 12; i++) spawnWild(20);
   if (voiceOn && SR && !listening) startListen(); }
 function startPrewave(){
@@ -1343,9 +1350,32 @@ document.addEventListener('keydown', ev => {
   if (KEYMAP[k] && !ev.repeat){ ev.preventDefault(); issue(KEYMAP[k]); }
 });
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-let downAt = null;
-cv.addEventListener('pointerdown', ev => { downAt = {x:ev.clientX, y:ev.clientY, t:performance.now()}; });
-cv.addEventListener('pointerup', ev => {
+let downAt = null, joy = null;   // joy: 손가락(또는 마우스)으로 끌어서 조종하는 중
+const JOY_R = 56;
+cv.addEventListener('pointerdown', ev => {
+  if (joy) return;   // 두 번째 손가락은 무시
+  downAt = {x:ev.clientX, y:ev.clientY, t:performance.now()};
+  joy = {id:ev.pointerId, x0:ev.clientX, y0:ev.clientY, active:false};
+  try { cv.setPointerCapture(ev.pointerId); } catch(e){}
+});
+cv.addEventListener('pointermove', ev => {
+  if (!joy || ev.pointerId !== joy.id) return;
+  const dx = ev.clientX - joy.x0, dy = ev.clientY - joy.y0, dist = Math.hypot(dx, dy);
+  if (!joy.active){ if (dist < 12) return; joy.active = true; joyEl.classList.add('on'); joyEl.style.left = joy.x0 + 'px'; joyEl.style.top = joy.y0 + 'px';
+    if ((G.state === 'play' || G.state === 'prewave') && !dog.awake) say('쿨쿨… 먼저 “눈 떠”라고 해 줘!', true); }
+  const k = Math.min(1, dist / JOY_R), nx = dx / (dist || 1), ny = dy / (dist || 1);
+  joyKnob.style.transform = `translate(${nx * k * JOY_R}px, ${ny * k * JOY_R}px)`;
+  if (G.state !== 'play' && G.state !== 'prewave') return;
+  if (!dog.awake || dog.battery <= 0) return;
+  // 화면 위쪽 = 북쪽(-z), 오른쪽 = 동쪽(+x) → 끄는 방향이 곧 로봇개가 달리는 방향
+  dog.mode = 'joy'; dog.joyMag = k; dog.wantHeading = Math.atan2(nx, ny); dog.target = null; targetMark.visible = false;
+  dog.speed = k > .85 ? 'fast' : k < .35 ? 'slow' : 'normal';
+});
+function joyEnd(ev){
+  if (!joy || ev.pointerId !== joy.id) return;
+  const wasActive = joy.active; joy = null; joyEl.classList.remove('on'); joyKnob.style.transform = '';
+  if (wasActive){ if (dog.mode === 'joy'){ dog.mode = 'stop'; dog.speed = 'normal'; } downAt = null; return; }
+  // 짧게 톡 누르기 → 그곳으로 걸어가기
   if (!downAt) return; const moved = Math.hypot(ev.clientX - downAt.x, ev.clientY - downAt.y), dt = performance.now() - downAt.t; downAt = null;
   if (moved > 12 || dt > 600) return;
   ndc.set(ev.clientX / innerWidth * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
@@ -1353,7 +1383,8 @@ cv.addEventListener('pointerup', ev => {
   const o = ray.ray.origin, d = ray.ray.direction; let hit = null;
   for (let t = 1; t < 160; t += .5){ const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t; if (y <= heightAt(x, z)){ hit = new THREE.Vector3(x, 0, z); break; } }
   if (hit) moveTo(hit);
-});
+}
+cv.addEventListener('pointerup', joyEnd); cv.addEventListener('pointercancel', joyEnd);
 function togglePause(){ if (G.state !== 'play' && G.state !== 'prewave') return; G.paused = !G.paused;
   $('#pauseBtn .lbl').textContent = G.paused ? '계속하기 P' : '일시정지 P'; $('#pauseBtn .ico').textContent = G.paused ? '▶' : 'Ⅱ'; showBanner(G.paused ? '일시정지 — P를 누르면 계속해요' : '', G.paused ? 999 : 0); }
 function toggleMute(){ muted = !muted; $('#muteBtn .lbl').textContent = muted ? '소리 켜기 M' : '소리 M'; $('#muteBtn .ico').textContent = muted ? '✕' : '♪'; }
@@ -1471,6 +1502,9 @@ function update(dt){
     } else if (dog.mode === 'dir'){
       dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 4);
       dog.pos.addScaledVector(fwdVec(dog.heading), dog.sign * speedV * dt); moving = true;
+    } else if (dog.mode === 'joy'){
+      dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 9);
+      dog.pos.addScaledVector(fwdVec(dog.heading), speedV * dt); moving = true;
     } else dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 4);
   } else if (dog.awake && dog.mode !== 'stop'){ dog.mode = 'stop'; dog.target = null; targetMark.visible = false; say('배터리 0%! “눈 감아”로 충전해요'); }
   if (moving) dog.battery = Math.max(0, dog.battery - drain * dt);
