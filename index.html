@@ -364,7 +364,7 @@ const CMDS = [
   {id:'purple',ko:'보라불',    key:'T', words:['보라','보랏','보래','볼라'],                desc:'보라 적에게 레이저 3배'},
   {id:'fire',  ko:'발사',      key:'F', words:['발사','발싸','팔사','발샤','바사','빨사','파사','바싸','박사','팔자','벌써','발상','말사','발자','밟아','판사','갈사','할사','발사아','발쌰','fire','파이어','쏴','쏘아','쏘라','쏴라','슛','빵야','빵빵'], desc:'가까운 적에게 레이저 4연발!'},
   {id:'bark',  ko:'짖어',      key:'B', words:['짖어','짖','지저','지져','짓어','지즈','멍멍','멍'], desc:'멍! 주변 적을 멀리 밀어내요'},
-  {id:'fart',  ko:'방귀',      key:'G', words:['방귀','방구','방기','빵구','뿡'],           desc:'뿡! 구름 속 적이 느려져요'},
+  {id:'fart',  ko:'방귀',      key:'G', words:['방귀','방구','방기','빵구','빵귀','빵꾸','방꾸','방뀌','방긔','뱅구','뱅귀','방고','반구','반귀','방궁','박구','망구','방긋','방귓','방굿','뿡','뽕','뿌웅','부웅'],           desc:'뿡! 구름 속 적이 느려져요'},
   {id:'sing',  ko:'노래해줘',  key:'V', words:['노래','노레','놀래'],                       desc:'「반짝반짝 작은별」을 불러 기지를 고치고 방어탑이 빨라져요'},
 ];
 const CMD = {}; CMDS.forEach(c => CMD[c.id] = c);
@@ -1296,8 +1296,8 @@ function issue(id){
         e.kb.copy(push); e.stun = Math.max(e.stun, .6); damage(e, 2); } });
       done = true; break;
     case 'fart':
-      if (!needAwake()) break; if (dog.cd.fart > 0){ say('아직 배가 안 고파요…'); break; } if (!needBattery(2)) break;
-      dog.battery -= 2; dog.cd.fart = 7; SFX.fart(); say('“방귀” 뿡~');
+      if (!needAwake()) break; if (dog.cd.fart > 0){ say('“방귀” 알아들었어요! 조금 뒤에 또 뀔 수 있어요'); break; } if (!needBattery(2)) break;
+      dog.battery -= 2; dog.cd.fart = 5; SFX.fart(); say('“방귀” 뿡~');
       makeCloud(); done = true; break;
     case 'sing':
       if (!needAwake()) break; if (dog.cd.sing > 0){ say('숨 고르는 중… 곧 불러요'); break; } if (!needBattery(3)) break;
