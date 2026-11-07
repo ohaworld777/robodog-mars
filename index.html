@@ -1296,8 +1296,8 @@ function issue(id){
         e.kb.copy(push); e.stun = Math.max(e.stun, .6); damage(e, 2); } });
       done = true; break;
     case 'fart':
-      if (!needAwake()) break; if (dog.cd.fart > 0){ say('“방귀” 알아들었어요! 조금 뒤에 또 뀔 수 있어요'); break; } if (!needBattery(2)) break;
-      dog.battery -= 2; dog.cd.fart = 5; SFX.fart(); say('“방귀” 뿡~');
+      if (!needAwake()) break; if (!needBattery(2)) break;   // 방귀는 대기시간 없이 배터리만 있으면 언제든
+      dog.battery -= 2; SFX.fart(); say('“방귀” 뿡~');
       makeCloud(); done = true; break;
     case 'sing':
       if (!needAwake()) break; if (dog.cd.sing > 0){ say('숨 고르는 중… 곧 불러요'); break; } if (!needBattery(3)) break;
@@ -1326,6 +1326,7 @@ function makeCloud(){
   for (let i = 0; i < 9; i++){ const p = new THREE.Mesh(new THREE.IcosahedronGeometry(.7 + Math.random() * .6, 0), new THREE.MeshStandardMaterial({color:0xb7d65a, transparent:true, opacity:.55, flatShading:true, roughness:1}));
     p.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 3, Math.random() * 1.2, (Math.random() - .5) * 3)); p.userData.base = p.position.clone(); scene.add(p); parts.push(p); }
   clouds.push({center, r:3.8, t:0, life:6.5, parts});
+  while (clouds.length > 6){ const old = clouds.shift(); old.parts.forEach(p => scene.remove(p)); }
 }
 
 /* ---------------- 사령관 명령 미션 ---------------- */
@@ -1336,7 +1337,7 @@ function pickMission(){
   else opts = opts.filter(id => id !== 'open');
   if (dog.mode === 'stop') opts = opts.filter(id => id !== 'stop');
   if (dog.led !== 'green') opts = opts.filter(id => id !== dog.led);
-  ['bark','fart','sing'].forEach(k => { if (dog.cd[k] > 0) opts = opts.filter(id => id !== k); });
+  ['bark','sing'].forEach(k => { if (dog.cd[k] > 0) opts = opts.filter(id => id !== k); });
   const id = opts[Math.random() * opts.length | 0];
   G.mission = {id, t:9, max:9}; G.lastMission = id;
   $('#missionText').textContent = `로봇개에게 “${CMD[id].ko}”라고 명령하세요!`;
@@ -1575,7 +1576,7 @@ function updateHUD(){
   $('#hpFill').style.background = G.baseHP / G.baseMax < .35 ? 'var(--red)' : 'var(--ok)';
   $('#batNum').textContent = Math.round(dog.battery); $('#batFill').style.width = dog.battery + '%';
   $('#minNum').textContent = G.minerals;
-  ['bark','fart','sing'].forEach(id => { const max = {bark:4, fart:7, sing:16}[id]; setCd(id, dog.cd[id] > 0 ? dog.cd[id] / max : 0); });
+  ['bark','sing'].forEach(id => { const max = {bark:4, sing:16}[id]; setCd(id, dog.cd[id] > 0 ? dog.cd[id] / max : 0); });
   const eyeTxt = dog.awake ? '눈 감아' : '눈 떠'; if (eyeBtn.textContent !== eyeTxt){ eyeBtn.textContent = eyeTxt; eyeBtn.classList.toggle('asleep', !dog.awake); }
 }
 
