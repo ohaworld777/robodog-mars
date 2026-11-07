@@ -353,8 +353,8 @@ const CMDS = [
   // words: 폰 음성인식이 실제로 받아 적는 여러 표기까지 포함
   {id:'fwd',   ko:'앞으로 가', key:'W', words:['앞으로','아프로','앞으루','전진','전지','정진','젼진','직진'],                 desc:'바라보는 쪽으로 걸어가요 (“전진”도 돼요)'},
   {id:'back',  ko:'뒤로 가',   key:'S', words:['뒤로','뒤루','디로','후진','후지','휴진','우진','후퇴'],                       desc:'뒷걸음질해요 (“후진”도 돼요)'},
-  {id:'left',  ko:'왼쪽',      key:'A', words:['왼쪽','왼','웬쪽','윈쪽'],                  desc:'왼쪽으로 몸을 돌려요'},
-  {id:'right', ko:'오른쪽',    key:'D', words:['오른쪽','오른','오륵','오른족'],            desc:'오른쪽으로 몸을 돌려요'},
+  {id:'left',  ko:'왼쪽',      key:'A', words:['왼쪽','왼','웬쪽','윈쪽','좌회전','자회전','좌회','좌로','좌측'],                  desc:'왼쪽으로 몸을 돌려요 (“좌회전”도 돼요)'},
+  {id:'right', ko:'오른쪽',    key:'D', words:['오른쪽','오른','오륵','오른족','우회전','우회','우로','우측'],            desc:'오른쪽으로 몸을 돌려요 (“우회전”도 돼요)'},
   {id:'stop',  ko:'멈춰',      key:'C', words:['멈춰','멈처','멈쳐','멈추','멈춤','정지','스톱','스탑','그만'], desc:'그 자리에 딱 멈춰요'},
   {id:'fast',  ko:'빠르게 가', key:'E', words:['빠르게','빨리','빠르','빠륵'],              desc:'빨리 달려요 (배터리 많이 씀)'},
   {id:'slow',  ko:'천천히 가', key:'Q', words:['천천히','천천','천처니'],                  desc:'천천히 걸어요 (배터리 아낌)'},
@@ -1376,7 +1376,7 @@ function extractCommands(text, final){
   for (let i = 0; i < toks.length; i++){
     const pair = i + 1 < toks.length ? toks[i] + toks[i + 1] : null;
     let id = pair ? matchCommand(pair) : null;
-    if (id && matchCommand(toks[i]) === id && !/^(가|가자)$/.test(toks[i + 1])) id = null;   // 두 단어가 각각 따로 명령인 경우
+    { const a = matchCommand(toks[i]), b = matchCommand(toks[i + 1]); if (id && (a === id || (a && b)) && !/^(가|가자)$/.test(toks[i + 1])) id = null; }   // 두 단어가 각각 따로 명령인 경우(전진 좌회전 등)
     if (id){ out.push(id); i++; continue; }
     id = matchCommand(toks[i]) || (final ? fuzzyCommand(toks[i]) || (pair ? fuzzyCommand(pair) : null) : null);
     if (id){ out.push(id); if (pair && final && !matchCommand(toks[i]) && !fuzzyCommand(toks[i])) i++; }
