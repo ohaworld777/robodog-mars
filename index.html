@@ -539,6 +539,17 @@ const BGM = (() => {
   Object.values(SONGS).forEach(S => { const ev = {}; let p = 0; S.lead.forEach(([n, l]) => { if (n) ev[p] = [n, l * 2]; p += l * 2; }); S.leadEv = ev; });
   let a = null, master = null, send = null, dly = null, padF = null, bassF = null, fx = null, noiseBuf = null;
   let timer = null, nextT = 0, pos = 0, mode = null, want = null, on = true, running = false, paused = false, duckUntil = 0, vol = .18;
+  // 매그니픽으로 만든 진짜 연주곡(bgm_calm.mp3 / bgm_wave.mp3)이 게임 파일 옆에 있으면 그 곡을 반복 재생하고, 없을 때만 아래 합성 곡을 씀
+  const TRACKS = {calm:'bgm_calm.mp3', wave:'bgm_wave.mp3'}, bufs = {}, srcs = {}, tg = {}; let loading = false;
+  function loadTracks(){ if (loading || !a) return; loading = true;
+    Object.entries(TRACKS).forEach(([m, url]) => fetch(url, {cache:'force-cache'}).then(r => r.ok ? r.arrayBuffer() : Promise.reject()).then(b => a.decodeAudioData(b))
+      .then(buf => { bufs[m] = buf; if (running && mode === m) playTrack(m); }).catch(() => {})); }
+  function playTrack(m){   // 다른 곡은 서서히 줄이고 이 곡을 서서히 키움 (반복 재생)
+    Object.keys(srcs).forEach(k => { if (k !== m) stopTrack(k, .9); });
+    if (srcs[m] || !bufs[m]) return; const t = a.currentTime, s = a.createBufferSource(), g = a.createGain();
+    s.buffer = bufs[m]; s.loop = true; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(1, t + .9); s.connect(g).connect(master); s.start(t); srcs[m] = s; tg[m] = g; }
+  function stopTrack(m, fade){ const s = srcs[m], g = tg[m]; if (!s) return; delete srcs[m]; delete tg[m]; const t = a.currentTime;
+    g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(Math.max(.0001, g.gain.value), t); g.gain.exponentialRampToValueAtTime(.0001, t + fade); try { s.stop(t + fade + .05); } catch(e){} }
   function ensure(){
     if (master) return true; a = ac(); if (!a) return false;
     vol = TOUCH ? .11 : .18;   // 음성인식을 방해하지 않게 작게 (폰은 스피커가 마이크와 가까워 더 작게)
@@ -578,17 +589,18 @@ const BGM = (() => {
     if (!running || paused || !a) return; const now = a.currentTime;
     if (nextT < now - .3) nextT = now + .05;   // 탭이 가려져 있다 돌아오면 이어서
     while (nextT < now + .45){   // 화면 그리기로 메인 스레드가 바빠도 끊기지 않게 넉넉히 미리 예약
-      if (pos % 16 === 0 && want && want !== mode){ mode = want; pos = 0; padF.frequency.setTargetAtTime(SONGS[mode].pad, nextT, .3); }   // 마디 첫 박에서 곡 전환
-      const S = SONGS[mode], sd = 60 / S.bpm / 4; schedule(pos, nextT, S, sd); nextT += sd; pos = (pos + 1) % 128;
+      if (pos % 16 === 0 && want && want !== mode){ mode = want; pos = 0; padF.frequency.setTargetAtTime(SONGS[mode].pad, nextT, .3);   // 마디 첫 박에서 곡 전환
+        if (bufs[mode]) playTrack(mode); else Object.keys(srcs).forEach(k => stopTrack(k, .6)); }
+      const S = SONGS[mode], sd = 60 / S.bpm / 4; if (!bufs[mode]) schedule(pos, nextT, S, sd); nextT += sd; pos = (pos + 1) % 128;
     }
     // 마이크가 켜져 있으면 더 작게, 말소리가 들어오는 동안은 거의 들리지 않게
     const base = (typeof listening !== 'undefined' && listening) ? vol * .7 : vol;
     master.gain.setTargetAtTime((muted || !on) ? 0 : now < duckUntil ? base * .08 : base, now, .1);
   }
   return {
-    start(m){ if (!ensure()) return; running = true; paused = false; mode = want = m; pos = 0; nextT = a.currentTime + .05; padF.frequency.value = SONGS[m].pad; clearInterval(timer); timer = setInterval(tick, 50); },
+    start(m){ if (!ensure()) return; running = true; paused = false; mode = want = m; pos = 0; nextT = a.currentTime + .05; padF.frequency.value = SONGS[m].pad; clearInterval(timer); timer = setInterval(tick, 50); loadTracks(); if (bufs[m]) playTrack(m); },
     set(m){ if (!running) this.start(m); else want = m; },
-    stop(){ running = false; clearInterval(timer); timer = null; if (master) master.gain.setTargetAtTime(0, a.currentTime, .4); },
+    stop(){ running = false; clearInterval(timer); timer = null; if (master) master.gain.setTargetAtTime(0, a.currentTime, .4); Object.keys(srcs).forEach(k => stopTrack(k, 1)); },
     pause(p){ paused = p; if (!master) return; if (p) master.gain.setTargetAtTime(0, a.currentTime, .15); else nextT = a.currentTime + .05; },
     quiet(sec){ this.duck(sec); },
     duck(sec){ if (a) duckUntil = Math.max(duckUntil, a.currentTime + (sec || 1.5)); },
@@ -1584,7 +1596,8 @@ const clock = new THREE.Clock();
 const camPos = new THREE.Vector3(0, 20, 30), camLook = new THREE.Vector3();
 function resize(){ const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
-function angleTo(a, b, max){ let d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; return a + Math.max(-max, Math.min(max, d)); }
+function angleDiff(b, a){ return ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; }   // b-a 를 -π~π 로
+function angleTo(a, b, max){ const d = angleDiff(b, a); return a + Math.max(-max, Math.min(max, d)); }
 function resolveObstacles(p, rad){
   obstacles.forEach(o => { const dx = p.x - o.x, dz = p.z - o.z, d = Math.hypot(dx, dz), m = o.r + rad; if (d < m && d > .001){ p.x = o.x + dx / d * m; p.z = o.z + dz / d * m; } });
 }
@@ -1622,7 +1635,7 @@ function update(dt){
     } else if (dog.mode === 'joy'){
       // 끄는 방향으로 몸을 빠르게 돌리고 그 방향으로 곧장 달림 (방향이 크게 다를 땐 먼저 돌고 나서 출발)
       dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 12);
-      const diff = Math.abs(((dog.wantHeading - dog.heading + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      const diff = Math.abs(angleDiff(dog.wantHeading, dog.heading));   // 몇 바퀴를 돌았든 실제 각도 차이만 봄
       if (diff < 1.2){ dog.pos.addScaledVector(fwdVec(dog.heading), speedV * dt); moving = true; }
     } else dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 4);
   } else if (dog.awake && dog.mode !== 'stop'){ dog.mode = 'stop'; dog.target = null; targetMark.visible = false; say('배터리 0%! “눈 감아”로 충전해요'); }
@@ -1634,6 +1647,7 @@ function update(dt){
   dog.pos.y = heightAt(dog.pos.x, dog.pos.z);
   if (!dog.awake){ dog.battery = Math.min(100, dog.battery + 20 * dt); dog.sleepZ -= dt; if (dog.sleepZ <= 0){ spriteFx(ZZZ_MAT, dog.pos.clone().setY(dog.pos.y + 2.6), 1.6, 1.2); dog.sleepZ = .8; } }
   else if (!moving) dog.battery = Math.min(100, dog.battery + 1.5 * dt);
+  dog.heading = Math.atan2(Math.sin(dog.heading), Math.cos(dog.heading)); dog.wantHeading = Math.atan2(Math.sin(dog.wantHeading), Math.cos(dog.wantHeading));
   dogM.g.position.lerp(dog.pos, .5); dogM.g.rotation.y = dog.heading;
   // 걷기 애니메이션
   dog.walk += dt * (moving ? speedV * 2.6 * (dog.mode === 'dir' ? dog.sign : 1) : 0);
