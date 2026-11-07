@@ -127,6 +127,8 @@ h1 span{color:var(--orange)}
 .cmdtable b em{font-style:normal;font-family:var(--body);font-size:10px;color:var(--ink-dim);margin-left:4px}
 .note{font-size:12.5px;color:var(--ink-dim);text-align:center;line-height:1.6;margin:0}
 .micnote{display:none}
+.micdefault{background:rgba(255,138,61,.12);border:1px solid rgba(255,138,61,.45);border-radius:12px;padding:8px 12px;color:var(--ink);font-size:13px}
+.micdefault b{color:var(--orange);font-weight:400}
 .diff{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .pill{font-family:var(--ui);font-size:15px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--ink);padding:8px 14px;cursor:pointer;display:grid;gap:2px;min-width:120px}
 .pill small{font-family:var(--body);font-size:11px;color:var(--ink-dim)}
@@ -306,9 +308,8 @@ h1 span{color:var(--orange)}
         <div><i>🕹️</i><b>누른 채 끌기</b><small>끄는 방향으로 달려요 · 멀리 끌수록 빨라요</small></div>
         <div><i>🎯</i><b>불빛 맞춰 “발사”</b><small>적 몸 색과 같은 불빛을 켜고 쏘면 한 번에!</small></div>
       </div>
-      <div class="diff">
-        <button class="pill sel" id="voiceOpt" type="button" aria-pressed="true">말로 명령하기 켬<small>허용 창에서 「사이트 방문 시 허용」을 골라요</small></button>
-      </div>
+      <p class="note micdefault" id="voiceNote">🎙️ 탐사 시작을 누르면 마이크가 바로 켜져요. 허용 창이 뜨면 「사이트 방문 시 허용」을 골라 주세요. 마이크 끄기·켜기는 게임 화면의 <b>「말하기」</b> 버튼으로만 해요.</p>
+      <button id="voiceOpt" type="button" hidden aria-hidden="true"></button>
       <div class="diff" id="diff">
         <button class="pill" type="button" data-d="easy">쉬움<small>느린 적, 넉넉한 광물</small></button>
         <button class="pill sel" type="button" data-d="normal">보통<small>기본 밸런스</small></button>
@@ -1540,12 +1541,9 @@ function stopListen(){ listening = false; clearTimeout(restartTimer); try { rec 
 // 다른 앱을 봤다가 돌아오면 다시 듣기
 document.addEventListener('visibilitychange', () => { BGM.pause(document.hidden || G.paused); if (!document.hidden && listening) scheduleRestart(250); });
 micBtn.addEventListener('click', () => { ac(); if (listening) stopListen(); else { micBlocked = false; startListen(); } });
-let voiceOn = !!SR;
+let voiceOn = !!SR;   // 마이크는 기본으로 켬 (게임 화면의 「말하기」 버튼으로만 끄고 켬)
 const voiceOpt = $('#voiceOpt');
-function paintVoiceOpt(){ voiceOpt.classList.toggle('sel', voiceOn); voiceOpt.setAttribute('aria-pressed', voiceOn);
-  voiceOpt.innerHTML = !SR ? '말로 명령하기 없음<small>이 브라우저는 음성인식이 없어요 · 화면 버튼으로 해요</small>'
-    : voiceOn ? '말로 명령하기 켬<small>허용 창에서 「사이트 방문 시 허용」을 골라요</small>' : '말로 명령하기 끔<small>화면 버튼만 써요</small>'; }
-voiceOpt.addEventListener('click', () => { if (SR){ voiceOn = !voiceOn; paintVoiceOpt(); } });
+function paintVoiceOpt(){ const n = $('#voiceNote'); if (n && !SR) n.innerHTML = '이 브라우저는 음성인식이 없어요. 화면 버튼으로 명령해요 (핸드폰은 Chrome이나 Safari로 열어 주세요).'; }
 paintVoiceOpt(); micIdle();
 $('#typer').addEventListener('submit', ev => { ev.preventDefault(); const inp = $('#cmdText'); const id = matchCommand(inp.value) || fuzzyCommand(inp.value);
   if (id){ issue(id); setHeard(`글자 명령: “${CMD[id].ko}”`); } else if (inp.value.trim()){ setHeard(`“${inp.value.trim()}”… 모르는 명령이에요`); SFX.bad(); }
