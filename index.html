@@ -485,11 +485,16 @@ function songNote(name, line){
 }
 const SFX = {
   bark(){ if (playBarkSample()) return; [0, .16].forEach((d, k) => barkOnce(d, k ? 1.55 : 1.7)); },   // 강아지처럼 높고 짧게
-  fart(){ if (muted) return; const a = ac(); if (!a) return; const t0 = a.currentTime;
-    const o = a.createOscillator(), g = a.createGain(), lfo = a.createOscillator(), lg = a.createGain(), f = a.createBiquadFilter();
-    o.type = 'sawtooth'; o.frequency.value = 85; lfo.frequency.value = 22; lg.gain.value = 30; lfo.connect(lg).connect(o.frequency);
-    f.type = 'lowpass'; f.frequency.value = 500; g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.22, t0 + .05); g.gain.exponentialRampToValueAtTime(.0001, t0 + .7);
-    o.connect(f).connect(g).connect(a.destination); o.start(t0); lfo.start(t0); o.stop(t0 + .75); lfo.stop(t0 + .75); noise(.5, .08, 200, .7); },
+  // 방귀: 크고 길게 "뿌르르륵~" — 낮은 톱니파 둘 + 입술 떨림(진폭 변조) + 바람 소리, 폰 스피커에서도 들리게 중음을 살림
+  fart(){ if (muted) return; const a = ac(); if (!a) return; const t0 = a.currentTime, L = 1.1;
+    const g = a.createGain(); g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.4, t0 + .04); g.gain.setValueAtTime(.4, t0 + .45); g.gain.exponentialRampToValueAtTime(.0001, t0 + L);
+    const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(1400, t0); f.frequency.exponentialRampToValueAtTime(420, t0 + L); f.Q.value = 4;
+    const am = a.createGain(); am.gain.value = .62; const trem = a.createOscillator(), tg = a.createGain(); trem.type = 'square'; trem.frequency.setValueAtTime(12, t0); trem.frequency.linearRampToValueAtTime(27, t0 + L); tg.gain.value = .38; trem.connect(tg).connect(am.gain);
+    [96, 103, 193].forEach((fr, i) => { const o = a.createOscillator(); o.type = i === 2 ? 'square' : 'sawtooth'; o.frequency.setValueAtTime(fr, t0); o.frequency.exponentialRampToValueAtTime(fr * .62, t0 + L);
+      const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = 21 + i * 3; lg.gain.value = fr * .28; lfo.connect(lg).connect(o.frequency);
+      const og = a.createGain(); og.gain.value = i === 2 ? .35 : 1; o.connect(og).connect(f); o.start(t0); lfo.start(t0); o.stop(t0 + L + .05); lfo.stop(t0 + L + .05); });
+    f.connect(am).connect(g).connect(a.destination); trem.start(t0); trem.stop(t0 + L + .05);
+    noise(.9, .3, 320, .9); noise(.5, .18, 950, 1.3, .08); noise(.25, .22, 180, .6, .75); },
   zap(c){ tone(c === 'purple' ? 980 : c === 'red' ? 720 : 860, .09, 'square', .05, 300); noise(.05, .05, 3000, 1); },
   tower(){ tone(1400, .05, 'triangle', .02, 900); },
   pop(){ tone(300, .15, 'triangle', .08, 90); noise(.12, .08, 600, 1); },
