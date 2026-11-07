@@ -516,32 +516,42 @@ const granTex = canvasTex(128, 128, (g, w, h) => { g.fillStyle = '#8b8c8e'; g.fi
   for (let i = 0; i < 1600; i++){ const v = 90 + Math.random()*110|0; g.fillStyle = `rgb(${v},${v},${v+4})`; g.fillRect(Math.random()*w, Math.random()*h, 1.5, 1.5); } });
 
 /* ---------------- 화성 지도: 기지, 분화구 4곳, 실제 화성 지형 ---------------- */
-const CENTER = new THREE.Vector2(0, -4), WORLD_R = 84;          // 로봇개가 다닐 수 있는 둥근 들판 (반경 84m)
+const CENTER = new THREE.Vector2(0, -4), WORLD_R = 168;         // 로봇개가 다닐 수 있는 둥근 들판 (반경 168m)
 const BASE_POS = new THREE.Vector3(0, 0, 22);
 const GATES = [
   {x:-28, z:-31, name:'서쪽 분화구'}, {x:29, z:-29, name:'동쪽 분화구'},
   {x:-40, z:2,  name:'협곡 분화구'},  {x:40, z:4,  name:'얼음 분화구'},
 ].map(g => Object.assign(g, {pos:new THREE.Vector3(g.x, 0, g.z)}));
 // 실제 화성 지형 (이름은 화성에 있는 실제 지형에서 따옴)
-const VOLC = {x:-125, z:-105, r:80, h:34, cal:14};                       // 올림푸스 화산: 완만한 방패 모양 + 꼭대기 칼데라
-const CANYON = [[56,-64],[66,-30],[62,-2],[70,26],[58,44]];               // 마리네리스 협곡: 층층 절벽
-const MESAS = [[-58,32,8,6.5],[-68,10,6,5],[-46,50,5,4.2],[-74,-14,4.5,3.6]]; // 탁상지(메사): 꼭대기가 평평한 언덕
+const VOLC = {x:-125, z:-105, r:80, h:34, cal:14};                       // 올림푸스 화산: 완만한 방패 모양 + 꼭대기 칼데라 (이제 걸어서 오를 수 있음)
+const VOLCS = [VOLC, {x:122, z:-118, r:52, h:20, cal:8}];                 // + 아르시아 화산 (타르시스 고원의 방패 화산)
+const CANYON = [[70,-150],[64,-108],[56,-64],[66,-30],[62,-2],[70,26],[58,44],[78,100],[96,150]];   // 마리네리스 협곡: 층층 절벽, 남북으로 길게
+const MESAS = [[-58,32,8,6.5],[-68,10,6,5],[-46,50,5,4.2],[-74,-14,4.5,3.6],[-120,40,10,8],[-140,-20,7,6],[-105,80,6,5],[-150,60,5,4.5]]; // 탁상지(메사)
 const DUNES = {x:-44, z:-56, r:20};                                       // 검은 현무암 모래언덕
+const DUNE_FIELDS = [DUNES, {x:118, z:-48, r:22}];                       // + 동쪽 모래언덕
 const BIG_CRATER = {x:36, z:50, r:13, depth:5, rim:2.6, peak:2.6};         // 중앙봉이 있는 충돌 분화구
-const CRATERS = [[14,6,3.4],[-12,-2,2.6],[10,-14,3],[-30,-20,3.2],[30,14,2.6],[-24,62,6],[8,66,5],[-66,-34,7],[46,-48,5],[-12,-64,6],[72,58,5]];
+const BIG_CRATERS = [BIG_CRATER, {x:-20, z:125, r:38, depth:9, rim:3.5, peak:0}, {x:110, z:62, r:22, depth:5, rim:2.4, peak:4.5}];   // + 헬라스 분지, 게일 분화구(중앙에 샤프산)
+const POLAR = {x:0, z:-165, r:48, h:5};                                   // 북극 얼음 모자: 층층이 쌓인 얼음
+const FROST_Z = -118;                                                     // 이 북쪽부터 서리가 덮임
+const CRATERS = [[14,6,3.4],[-12,-2,2.6],[10,-14,3],[-30,-20,3.2],[30,14,2.6],[-24,62,6],[8,66,5],[-66,-34,7],[46,-48,5],[-12,-64,6],[72,58,5],
+  [-95,110,7],[-130,-70,5],[20,-120,6],[-60,-130,5],[150,-20,6],[140,-80,4.5],[-150,100,6],[40,135,5],[-110,-130,4],[150,110,5],[-165,20,5],[85,-120,4.5]];
 const PLACES = [
   {name:'착륙선', x:-24, z:12, r:3.2}, {name:'탐사 로버', x:22, z:20, r:2.6},
   {name:'크리스털 밭', x:-20, z:-14, r:0}, {name:'얼음 웅덩이', x:24, z:-6, r:0}, {name:'바위 언덕', x:2, z:-22, r:0},
   {name:'올림푸스 화산', x:VOLC.x + 30, z:VOLC.z + 25, r:0, far:true, lift:10},
   {name:'마리네리스 협곡', x:64, z:-14, r:0, lift:2}, {name:'탁상지(메사)', x:-58, z:32, r:0, lift:3},
   {name:'검은 모래언덕', x:DUNES.x, z:DUNES.z, r:0}, {name:'충돌 분화구', x:BIG_CRATER.x, z:BIG_CRATER.z, r:0},
-  {name:'극지 서리', x:0, z:-80, r:0},
+  {name:'극지 서리', x:0, z:-128, r:0},
+  {name:'아르시아 화산', x:VOLCS[1].x - 18, z:VOLCS[1].z + 16, r:0, far:true, lift:8},
+  {name:'헬라스 분지', x:BIG_CRATERS[1].x, z:BIG_CRATERS[1].z, r:0, lift:2}, {name:'게일 분화구', x:BIG_CRATERS[2].x, z:BIG_CRATERS[2].z, r:0, lift:5},
+  {name:'동쪽 모래언덕', x:DUNE_FIELDS[1].x, z:DUNE_FIELDS[1].z, r:0}, {name:'북극 얼음 모자', x:POLAR.x, z:POLAR.z + 8, r:0, lift:4},
+  {name:'서쪽 메사 고원', x:-125, z:40, r:0, lift:6},
 ];
 const PAD_SPOTS = [[-7,8]];   // 방어탑 자리: 기지 앞 왼쪽 (로봇개 출발 길을 막지 않게, 기초는 처음부터 있음)
 const obstacles = [];   // {x,z,r}: 로봇개·적이 비켜 가는 것
 obstacles.push({x:BASE_POS.x, z:BASE_POS.z, r:10.2});
 
-const SIZE = 420, SEGS = 210, GRID = SEGS + 1, SEG = SIZE / SEGS, HALF = SIZE / 2, heights = new Float32Array(GRID * GRID);
+const SIZE = 800, SEGS = 400, GRID = SEGS + 1, SEG = SIZE / SEGS, HALF = SIZE / 2, heights = new Float32Array(GRID * GRID);
 const ss = THREE.MathUtils.smoothstep;
 function distToPolyline(x, z, pts){ let m = 1e9;
   for (let i = 0; i < pts.length - 1; i++){ const [ax, az] = pts[i], [bx, bz] = pts[i + 1]; const vx = bx - ax, vz = bz - az;
@@ -554,20 +564,27 @@ function rawHeight(x, z){
   // 기본 들판의 완만한 굴곡
   let h = (Math.sin(x * .15) * Math.cos(z * .13) * .9 + Math.sin(x * .37 + z * .21) * .35 + Math.cos(z * .45 - x * .1) * .2) * .55;
   h += (Math.sin(x * .045 + 1) * Math.cos(z * .05) * 1.6 + Math.sin(z * .03 - x * .02) * 1.2) * ss(dc, 34, 60);
+  // 바깥 들판의 큰 물결 (넓은 평원 느낌)
+  h += (Math.sin(x * .02 + 2) * Math.cos(z * .017) * 3 + Math.sin(x * .011 - z * .013) * 2) * ss(dc, 78, 115);
   // 작은 충돌 분화구들
-  CRATERS.forEach(([cx, cz, r]) => { const d = Math.hypot(x - cx, z - cz); if (d < r * 2.4) h += craterH(d, r, r * .28, r * .14); });
-  // 큰 충돌 분화구 (중앙봉)
-  { const c = BIG_CRATER, d = Math.hypot(x - c.x, z - c.z); if (d < c.r * 2.6) h += craterH(d, c.r, c.depth, c.rim) + c.peak * Math.max(0, 1 - d / (c.r * .28)) ** 1.5; }
+  for (let k = 0; k < CRATERS.length; k++){ const cx = CRATERS[k][0], cz = CRATERS[k][1], r = CRATERS[k][2]; if (Math.abs(x - cx) > r * 2.4 || Math.abs(z - cz) > r * 2.4) continue;
+    const d = Math.hypot(x - cx, z - cz); if (d < r * 2.4) h += craterH(d, r, r * .28, r * .14); }
+  // 큰 충돌 분화구·분지 (중앙봉)
+  for (let k = 0; k < BIG_CRATERS.length; k++){ const c = BIG_CRATERS[k]; if (Math.abs(x - c.x) > c.r * 2.6 || Math.abs(z - c.z) > c.r * 2.6) continue;
+    const d = Math.hypot(x - c.x, z - c.z); if (d < c.r * 2.6) h += craterH(d, c.r, c.depth, c.rim) + (c.peak ? c.peak * Math.max(0, 1 - d / (c.r * .28)) ** 1.5 : 0); }
+  // 북극 얼음 모자 (층층이 쌓인 얼음 테라스)
+  { const d = Math.hypot(x - POLAR.x, z - POLAR.z); if (d < POLAR.r) h += POLAR.h * terrace(1 - ss(d, POLAR.r * .5, POLAR.r), 4); }
   // 바위 언덕
   h += Math.max(0, 1 - Math.hypot(x - 2, z + 22) / 7) * 2.2;
   // 마리네리스 협곡: 바닥 -8m, 3단 계단 절벽, 가장자리가 살짝 솟음
   { const d = distToPolyline(x, z, CANYON); if (d < 20){ const floor = 6, wall = 9; h += d < floor ? -8 : d < floor + wall ? -8 + 8 * terrace((d - floor) / wall, 3) : .8 * Math.exp(-Math.pow((d - floor - wall) / 3, 2)); } }
   // 탁상지(메사)
-  MESAS.forEach(([mx, mz, r, mh]) => { const d = Math.hypot(x - mx, z - mz); if (d < r + 4) h += mh * terrace(1 - ss(d, r, r + 3.5), 3); });
+  for (let k = 0; k < MESAS.length; k++){ const mx = MESAS[k][0], mz = MESAS[k][1], r = MESAS[k][2], mh = MESAS[k][3]; if (Math.abs(x - mx) > r + 4 || Math.abs(z - mz) > r + 4) continue;
+    const d = Math.hypot(x - mx, z - mz); if (d < r + 4) h += mh * terrace(1 - ss(d, r, r + 3.5), 3); }
   // 검은 모래언덕 (바람 부는 쪽은 완만, 반대쪽은 가파른 줄무늬 언덕)
-  { const d = Math.hypot(x - DUNES.x, z - DUNES.z); if (d < DUNES.r + 6){ const f = 1 - ss(d, DUNES.r - 6, DUNES.r + 6); const w = (x * .55 + z * .2 + Math.sin(z * .18) * 2) % 6.283; const p = ((w + 6.283) % 6.283) / 6.283; h += f * 1.5 * (p < .8 ? p / .8 : (1 - p) / .2); } }
-  // 올림푸스 화산 (지평선 너머의 거대한 방패 화산)
-  { const d = Math.hypot(x - VOLC.x, z - VOLC.z); if (d < VOLC.r) h += VOLC.h * Math.pow(1 - d / VOLC.r, 1.35) - (d < VOLC.cal ? 7 * (1 - (d / VOLC.cal) ** 2) : 0); }
+  DUNE_FIELDS.forEach(D => { const d = Math.hypot(x - D.x, z - D.z); if (d < D.r + 6){ const f = 1 - ss(d, D.r - 6, D.r + 6); const w = (x * .55 + z * .2 + Math.sin(z * .18) * 2) % 6.283; const p = ((w + 6.283) % 6.283) / 6.283; h += f * 1.5 * (p < .8 ? p / .8 : (1 - p) / .2); } });
+  // 방패 화산들 (올림푸스·아르시아): 완만한 비탈 + 꼭대기 칼데라
+  VOLCS.forEach(V => { const d = Math.hypot(x - V.x, z - V.z); if (d < V.r) h += V.h * Math.pow(1 - d / V.r, 1.35) - (d < V.cal ? V.h * .2 * (1 - (d / V.cal) ** 2) : 0); });
   // 들판 끝을 둘러싼 언덕
   h += Math.max(0, dc - WORLD_R - 4) * .35 * ss(dc, WORLD_R + 4, WORLD_R + 30);
   // 기지·분화구 입구·건설 구역은 평평하게
@@ -598,10 +615,11 @@ function heightAt(x, z){
     c.setRGB(LIGHT[0] + (DUST[0] - LIGHT[0]) * n, LIGHT[1] + (DUST[1] - LIGHT[1]) * n, LIGHT[2] + (DUST[2] - LIGHT[2]) * n);
     const band = STRATA[((Math.floor((y + 20) * 1.4) % 4) + 4) % 4];
     c.lerp(t.setRGB(band[0], band[1], band[2]), ss(slope, .08, .35));
-    const dv = Math.hypot(x - VOLC.x, z - VOLC.z); if (dv < VOLC.r) c.lerp(t.setRGB(BASALT[0] + .1, BASALT[1] + .04, BASALT[2]), .5 * (1 - dv / VOLC.r) + .2);
-    if (distToPolyline(x, z, CANYON) < 6) c.lerp(t.setRGB(BASALT[0] + .08, BASALT[1] + .03, BASALT[2]), .45);
-    const dd = Math.hypot(x - DUNES.x, z - DUNES.z); if (dd < DUNES.r + 4) c.lerp(t.setRGB(DUNE[0], DUNE[1], DUNE[2]), .85 * (1 - ss(dd, DUNES.r - 6, DUNES.r + 4)));
-    if (z < -62) c.lerp(t.setRGB(FROST[0], FROST[1], FROST[2]), ss(z, -62, -82) * (.55 + .45 * n) * (slope < .25 ? 1 : .4));
+    VOLCS.forEach(V => { const dv = Math.hypot(x - V.x, z - V.z); if (dv < V.r) c.lerp(t.setRGB(BASALT[0] + .1, BASALT[1] + .04, BASALT[2]), .5 * (1 - dv / V.r) + .2); });
+    if (Math.abs(x - 70) < 40 && distToPolyline(x, z, CANYON) < 6) c.lerp(t.setRGB(BASALT[0] + .08, BASALT[1] + .03, BASALT[2]), .45);
+    DUNE_FIELDS.forEach(D => { const dd = Math.hypot(x - D.x, z - D.z); if (dd < D.r + 4) c.lerp(t.setRGB(DUNE[0], DUNE[1], DUNE[2]), .85 * (1 - ss(dd, D.r - 6, D.r + 4))); });
+    if (z < FROST_Z) c.lerp(t.setRGB(FROST[0], FROST[1], FROST[2]), ss(z, FROST_Z, FROST_Z - 22) * (.55 + .45 * n) * (slope < .25 ? 1 : .4));
+    { const dp = Math.hypot(x - POLAR.x, z - POLAR.z); if (dp < POLAR.r) c.lerp(t.setRGB(.93, .96, 1), .9 * (1 - ss(dp, POLAR.r * .6, POLAR.r))); }   // 얼음 모자는 푸르스름한 흰색
     c.convertSRGBToLinear(); cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
   }
   geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
@@ -617,24 +635,29 @@ function heightAt(x, z){
   const rockM = [mat(0x8f3f22), mat(0x6e2f1c), mat(0xa65232), mat(0x4a2a20)];
   const rockOK = (x, z) => !(Math.hypot(x - BASE_POS.x, z - BASE_POS.z) < 14 || GATES.some(g => Math.hypot(x - g.x, z - g.z) < 7) ||
     PLACES.some(p => p.r && Math.hypot(x - p.x, z - p.z) < 6) || PAD_SPOTS.some(([px, pz]) => Math.hypot(x - px, z - pz) < 4) || Math.hypot(x - 2, z - 6) < 7 || (Math.abs(x - 2) < 3.5 && z < 6 && z > -16) ||
-    Math.hypot(x - DUNES.x, z - DUNES.z) < DUNES.r || Math.hypot(x - CENTER.x, z - CENTER.y) > WORLD_R + 26);
+    DUNE_FIELDS.some(D => Math.hypot(x - D.x, z - D.z) < D.r) || Math.hypot(x - POLAR.x, z - POLAR.z) < POLAR.r * .6 || Math.hypot(x - CENTER.x, z - CENTER.y) > WORLD_R + 26);
+  const rockParts = rockM.map(() => ({pos:[], nrm:[]})), rockMat4 = new THREE.Matrix4(), rockQ = new THREE.Quaternion(), rockE = new THREE.Euler();
   const addRock = (x, z, size) => {
-    const r = mesh(new THREE.DodecahedronGeometry(size, 0), rockM[(Math.random() * 4) | 0]);
-    r.position.set(x, heightAt(x, z) + size * .15, z); r.scale.y = .5 + Math.random() * .6; r.rotation.set(Math.random(), Math.random() * 6, Math.random()); scene.add(r);
+    const g = new THREE.DodecahedronGeometry(size, 0);
+    rockMat4.compose(new THREE.Vector3(x, heightAt(x, z) + size * .15, z), rockQ.setFromEuler(rockE.set(Math.random(), Math.random() * 6, Math.random())), new THREE.Vector3(1, .5 + Math.random() * .6, 1));
+    g.applyMatrix4(rockMat4); const part = rockParts[(Math.random() * 4) | 0];
+    part.pos.push(...g.attributes.position.array); part.nrm.push(...g.attributes.normal.array);
     if (size > 1 && Math.hypot(x - CENTER.x, z - CENTER.y) < WORLD_R + 2) obstacles.push({x, z, r:size * .9});
   };
   let placed = 0, guard = 0;
-  while (placed < 260 && guard++ < 6000){
+  while (placed < 700 && guard++ < 16000){
     const a = Math.random() * 6.283, rr = Math.sqrt(Math.random()) * (WORLD_R + 24), x = CENTER.x + Math.cos(a) * rr, z = CENTER.y + Math.sin(a) * rr;
     if (!rockOK(x, z)) continue; addRock(x, z, .3 + Math.random() * Math.random() * 2.2); placed++;
   }
-  [[BIG_CRATER.x, BIG_CRATER.z, BIG_CRATER.r]].concat(CRATERS.filter(c => c[2] >= 5)).forEach(([cx, cz, r]) => {
+  BIG_CRATERS.map(c => [c.x, c.z, c.r]).concat(CRATERS.filter(c => c[2] >= 5)).forEach(([cx, cz, r]) => {
     for (let i = 0; i < 14; i++){ const a = Math.random() * 6.283, d = r * (1.05 + Math.random() * .5), x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (rockOK(x, z)) addRock(x, z, .3 + Math.random() * .7); } });
+  rockParts.forEach((part, k) => { if (!part.pos.length) return; const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(part.pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(part.nrm, 3)); scene.add(mesh(g, rockM[k])); });
 })();
 /* 하늘: 버터스카치색 화성 하늘, 작은 해, 두 위성 포보스·데이모스, 먼지 회오리 */
 (function sky(){
-  const g = new THREE.SphereGeometry(480, 24, 12), col = [], p = g.attributes.position, c = new THREE.Color(), lo = new THREE.Color(0xe9b791), hi = new THREE.Color(0xa86a46);
-  for (let i = 0; i < p.count; i++){ const k = Math.max(0, p.getY(i) / 480); c.copy(lo).lerp(hi, Math.pow(k, .6)); c.convertSRGBToLinear(); col.push(c.r, c.g, c.b); }
+  const g = new THREE.SphereGeometry(900, 24, 12), col = [], p = g.attributes.position, c = new THREE.Color(), lo = new THREE.Color(0xe9b791), hi = new THREE.Color(0xa86a46);
+  for (let i = 0; i < p.count; i++){ const k = Math.max(0, p.getY(i) / 900); c.copy(lo).lerp(hi, Math.pow(k, .6)); c.convertSRGBToLinear(); col.push(c.r, c.g, c.b); }
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   scene.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.BackSide, fog:false, depthWrite:false})));
   const sunDisc = new THREE.Mesh(new THREE.CircleGeometry(9, 24), new THREE.MeshBasicMaterial({color:0xfff6e8, fog:false}));
@@ -644,7 +667,7 @@ function heightAt(x, z){
   [[-200, 150, -330, 7], [240, 120, -280, 3.5]].forEach(([x, y, z, r]) => { const m = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 1), new THREE.MeshStandardMaterial({color:0x8a7f78, roughness:1, flatShading:true, fog:false}));
     m.position.set(x, y, z); m.scale.set(1.3, 1, 1.1); scene.add(m); });
 })();
-const devils = [[-30, 40], [50, -20]].map(([x, z], i) => {
+const devils = [[-30, 40], [50, -20], [-110, 20], [120, 90], [-40, -110]].map(([x, z], i) => {
   const g = new THREE.Group(); g.position.set(x, heightAt(x, z), z);
   const cone = new THREE.Mesh(new THREE.CylinderGeometry(1.6, .35, 16, 10, 4, true), new THREE.MeshBasicMaterial({color:0xe2a87e, transparent:true, opacity:.13, side:THREE.DoubleSide, depthWrite:false}));
   cone.position.y = 7; g.add(cone); scene.add(g);
@@ -781,7 +804,7 @@ GATES.forEach(gt => {
     ice.rotation.x = -Math.PI / 2; ice.position.set(x, heightAt(x, z) + .07 + i * .002, z); scene.add(ice); }
 })();
 /* 먼지 입자 */
-const dust = (function(){ const n = 1200, a = new Float32Array(n * 3); for (let i = 0; i < n; i++){ a[i*3] = (Math.random() - .5) * 200; a[i*3+1] = Math.random() * 16; a[i*3+2] = (Math.random() - .5) * 200 - 4; }
+const dust = (function(){ const n = 2200, a = new Float32Array(n * 3); for (let i = 0; i < n; i++){ a[i*3] = (Math.random() - .5) * 360; a[i*3+1] = Math.random() * 16; a[i*3+2] = (Math.random() - .5) * 360 - 4; }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(a, 3));
   const p = new THREE.Points(g, new THREE.PointsMaterial({color:0xffd6b0, size:.12, transparent:true, opacity:.55})); scene.add(p); return p; })();
 
@@ -984,7 +1007,8 @@ function spawnEnemy(type, color, opt){
 }
 // 숨은 외계 생물이 사는 곳 (실제 화성 지형 곳곳)
 const WILD_SPOTS = [[62,-30],[64,0],[66,22],[56,-56],[-58,32],[-68,10],[-46,50],[-44,-56],[-34,-46],[36,46],[42,56],[0,-74],[22,-70],[-20,-72],
-  [-20,-14],[-58,-52],[-66,-34],[-24,62],[8,66],[46,-48],[72,50],[-74,-12],[-12,-62]];
+  [-20,-14],[-58,-52],[-66,-34],[-24,62],[8,66],[46,-48],[72,50],[-74,-12],[-12,-62],
+  [-20,125],[-40,110],[110,60],[125,45],[0,-150],[30,-140],[-30,-145],[118,-48],[100,-70],[-120,40],[-140,-20],[-105,80],[-95,-80],[104,-102],[80,110],[-130,70],[150,0],[-150,-60],[60,-130],[-60,130],[96,150],[-150,100]];
 function spawnWild(avoidNear){
   const spots = WILD_SPOTS.filter(([x, z]) => Math.hypot(x - dog.pos.x, z - dog.pos.z) > (avoidNear || 0) &&
     !enemies.some(e => e.wild && Math.hypot(e.home.x - x, e.home.z - z) < 6));
@@ -1357,13 +1381,14 @@ function drawMini(){
   mg.fillStyle = 'rgba(255,190,140,.12)'; mg.beginPath(); mg.arc(R, R, WORLD_R * sc, 0, 7); mg.fill();
   // 실제 화성 지형
   let x, y;
-  mg.fillStyle = 'rgba(245,240,235,.35)'; [x, y] = P(0, -62); mg.fillRect(0, 0, W, y);                       // 극지 서리
-  mg.fillStyle = 'rgba(40,20,16,.55)'; [x, y] = P(DUNES.x, DUNES.z); mg.beginPath(); mg.arc(x, y, DUNES.r * sc, 0, 7); mg.fill();   // 검은 모래언덕
+  mg.fillStyle = 'rgba(245,240,235,.35)'; [x, y] = P(0, FROST_Z); mg.fillRect(0, 0, W, y);                   // 극지 서리
+  mg.fillStyle = 'rgba(235,245,255,.75)'; [x, y] = P(POLAR.x, POLAR.z); mg.beginPath(); mg.arc(x, y, POLAR.r * sc, 0, 7); mg.fill();   // 북극 얼음 모자
+  mg.fillStyle = 'rgba(40,20,16,.55)'; DUNE_FIELDS.forEach(D => { [x, y] = P(D.x, D.z); mg.beginPath(); mg.arc(x, y, D.r * sc, 0, 7); mg.fill(); });   // 검은 모래언덕
   mg.strokeStyle = 'rgba(60,24,14,.85)'; mg.lineWidth = 12 * sc; mg.lineCap = 'round'; mg.beginPath();
   CANYON.forEach(([cx, cz], i) => { const q = P(cx, cz); i ? mg.lineTo(q[0], q[1]) : mg.moveTo(q[0], q[1]); }); mg.stroke();                  // 협곡
   mg.fillStyle = 'rgba(200,110,60,.9)'; MESAS.forEach(([mx, mz, r]) => { [x, y] = P(mx, mz); mg.beginPath(); mg.arc(x, y, r * sc, 0, 7); mg.fill(); });  // 메사
-  mg.strokeStyle = 'rgba(70,30,18,.9)'; mg.lineWidth = 3 * K; [x, y] = P(BIG_CRATER.x, BIG_CRATER.z); mg.beginPath(); mg.arc(x, y, BIG_CRATER.r * sc, 0, 7); mg.stroke();
-  mg.fillStyle = 'rgba(60,24,14,.7)'; [x, y] = P(VOLC.x, VOLC.z); mg.beginPath(); mg.arc(x, y, VOLC.r * sc, 0, 7); mg.fill();   // 화산 (지도 밖 왼쪽 위)
+  mg.strokeStyle = 'rgba(70,30,18,.9)'; mg.lineWidth = 3 * K; BIG_CRATERS.forEach(c => { [x, y] = P(c.x, c.z); mg.beginPath(); mg.arc(x, y, c.r * sc, 0, 7); mg.stroke(); });   // 큰 분화구·분지
+  mg.fillStyle = 'rgba(60,24,14,.7)'; VOLCS.forEach(V => { [x, y] = P(V.x, V.z); mg.beginPath(); mg.arc(x, y, V.r * sc, 0, 7); mg.fill(); });   // 화산
   // 장소
   mg.fillStyle = 'rgba(181,140,255,.35)'; [x, y] = P(-20, -14); mg.beginPath(); mg.arc(x, y, 6 * sc, 0, 7); mg.fill();
   mg.fillStyle = 'rgba(230,246,255,.35)'; [x, y] = P(24, -6); mg.beginPath(); mg.arc(x, y, 5 * sc, 0, 7); mg.fill();
