@@ -51,10 +51,6 @@ button{touch-action:manipulation}
 #joy{position:absolute;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:2px solid rgba(255,214,170,.5);background:rgba(34,22,30,.32);pointer-events:none;display:none}
 #joy::before{content:"";position:absolute;inset:18px;border-radius:50%;border:1px dashed rgba(255,214,170,.35)}
 #joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9b0,#ffd166 55%,#d9a21c);box-shadow:0 4px 12px rgba(0,0,0,.45)}
-#joy b{position:absolute;font-family:var(--ui);font-weight:400;font-size:11px;color:rgba(255,236,210,.6);white-space:nowrap;transition:color .15s,text-shadow .15s}
-#joy b.u{top:-20px;left:50%;transform:translateX(-50%)}#joy b.d{bottom:-20px;left:50%;transform:translateX(-50%)}
-#joy b.l{left:-34px;top:50%;transform:translateY(-50%)}#joy b.r{right:-36px;top:50%;transform:translateY(-50%)}
-#joy.fwd b.u,#joy.back b.d,#joy.turnL b.l,#joy.turnR b.r{color:#ffd166;text-shadow:0 0 8px rgba(255,209,102,.9)}
 #joy.on{display:block}
 .float{position:absolute;transform:translate(-50%,-50%);font-family:var(--display);font-size:18px;text-shadow:0 2px 0 rgba(0,0,0,.5);white-space:nowrap}
 .padlabel,.placelabel{position:absolute;transform:translate(-50%,-50%);font-family:var(--ui);font-size:13px;background:rgba(20,14,26,.8);border:1px solid rgba(255,209,102,.6);color:var(--gold);padding:2px 8px;border-radius:8px;white-space:nowrap}
@@ -255,7 +251,7 @@ h1 span{color:var(--orange)}
         <button class="iconbtn" id="musicBtn" type="button" aria-label="배경음악"><span class="lbl">음악 K</span><span class="ico">♫</span></button>
       </div>
       <canvas id="mini" width="480" height="480" aria-label="화성 지도: 기지, 분화구, 적, 로봇개 위치"></canvas>
-      <div class="minicap">노랑 = 로봇개 · 톡 누르면 그곳으로 · 위아래로 끌면 전진·후진, 옆으로 끌면 방향 전환</div>
+      <div class="minicap">노랑 = 로봇개 · 땅을 톡 누르면 그곳으로, 누른 채 끌면 끄는 방향으로</div>
     </div>
   </div>
 
@@ -307,8 +303,8 @@ h1 span{color:var(--orange)}
       <div class="howto" aria-label="로봇개 조종 방법">
         <div><i>🎙️</i><b>말하기 · 버튼</b><small>“앞으로 가”처럼 말하거나 화면 버튼을 눌러요</small></div>
         <div><i>👆</i><b>땅을 톡 누르기</b><small>로봇개가 그곳으로 걸어가요</small></div>
-        <div><i>↕️</i><b>누른 채 위·아래로 끌기</b><small>앞으로 · 뒤로 움직여요</small></div>
-        <div><i>↔️</i><b>누른 채 옆으로 끌기</b><small>왼쪽 · 오른쪽으로 방향을 돌려요</small></div>
+        <div><i>🕹️</i><b>누른 채 끌기</b><small>끄는 방향으로 달려요 · 멀리 끌수록 빨라요</small></div>
+        <div><i>🎯</i><b>불빛 맞춰 “발사”</b><small>적 몸 색과 같은 불빛을 켜고 쏘면 한 번에!</small></div>
       </div>
       <div class="diff">
         <button class="pill sel" id="voiceOpt" type="button" aria-pressed="true">말로 명령하기 켬<small>허용 창에서 「사이트 방문 시 허용」을 골라요</small></button>
@@ -322,7 +318,7 @@ h1 span{color:var(--orange)}
       <details class="cmds" id="cmdDetails">
         <summary>명령어 15가지와 놀이 방법 보기</summary>
         <div class="cmdtable" id="cmdTable"></div>
-        <p class="note">마이크를 켜 두고 명령을 또박또박 말하면 로봇개가 알아들어요. 화면 버튼도 언제든 함께 쓸 수 있고, 땅을 톡 누르면 그곳으로 걸어가고, 누른 채 위·아래로 끌면 앞으로·뒤로 가고 옆으로 끌면 방향을 돌려요.<br>적 몸 색과 같은 불빛을 켜고 “발사”하면 한 번에 쓰러뜨려요. 눈을 감고 쉬면 배터리가 차고, 광물을 하나 주울 때마다 기지 앞 방어탑이 한 단씩 올라가 10단이면 완성돼요.</p>
+        <p class="note">마이크를 켜 두고 명령을 또박또박 말하면 로봇개가 알아들어요. 화면 버튼도 언제든 함께 쓸 수 있고, 땅을 톡 누르면 그곳으로 걸어가고, 누른 채 끌면 끄는 방향으로 달려요(멀리 끌수록 빨라요).<br>적 몸 색과 같은 불빛을 켜고 “발사”하면 한 번에 쓰러뜨려요. 눈을 감고 쉬면 배터리가 차고, 광물을 하나 주울 때마다 기지 앞 방어탑이 한 단씩 올라가 10단이면 완성돼요.</p>
         <p class="note micnote">핸드폰은 Chrome(안드로이드)이나 Safari(아이폰)로 열어 주세요. 카카오톡 안에서 열면 마이크가 안 될 수 있어요.<br>마이크 허용 창이 뜨면 크롬은 <b>「사이트 방문 시 허용」</b>을 고르면 다음부터 묻지 않아요. 아이폰은 주소창의 <b>가가 → 웹사이트 설정 → 마이크 → 허용</b>으로 바꿔 두세요.</p>
       </details>
     </div>
@@ -974,7 +970,7 @@ targetMark.rotation.x = -Math.PI / 2; targetMark.visible = false; scene.add(targ
 /* ---------------- 오버레이 ---------------- */
 const overlay = $('#overlay');
 const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.style.opacity = 0; overlay.appendChild(bubble);
-const joyEl = document.createElement('div'); joyEl.id = 'joy'; joyEl.innerHTML = '<i></i><b class="u">▲ 앞</b><b class="d">▼ 뒤</b><b class="l">◀ 왼</b><b class="r">오 ▶</b>'; overlay.appendChild(joyEl); const joyKnob = joyEl.firstElementChild;
+const joyEl = document.createElement('div'); joyEl.id = 'joy'; joyEl.innerHTML = '<i></i>'; overlay.appendChild(joyEl); const joyKnob = joyEl.firstElementChild;
 const tmpV = new THREE.Vector3();
 function toScreen(v){ tmpV.copy(v).project(camera); return {x:(tmpV.x + 1) / 2 * innerWidth, y:(1 - tmpV.y) / 2 * innerHeight, ok: tmpV.z < 1 && Math.abs(tmpV.x) < 1.1 && Math.abs(tmpV.y) < 1.1}; }
 const floats = [];
@@ -1209,7 +1205,7 @@ function resetGame(){
   $('#stageLabel').textContent = '화성탐사기지 · ' + D.label;
 }
 function startGame(){ ac(); prepBark(); resetGame(); $('#startScreen').hidden = true; $('#endScreen').hidden = true; BGM.start('calm'); startPrewave(); say('숨은 적을 찾아 “발사”!');
-  setTimeout(() => { if (G.state === 'prewave') showBanner(TOUCH ? '땅을 누른 채 위·아래로 끌면 앞으로·뒤로, 옆으로 끌면 방향 전환' : '마우스로 땅을 누른 채 위·아래로 끌면 앞으로·뒤로, 옆으로 끌면 방향 전환', 4.5); }, 6500);
+  setTimeout(() => { if (G.state === 'prewave') showBanner(TOUCH ? '손가락으로 땅을 누른 채 끌면 끄는 방향으로 달려요' : '마우스로 땅을 누른 채 끌면 끄는 방향으로 달려요', 4); }, 6500);
   for (let i = 0; i < 12; i++) spawnWild(20);
   if (voiceOn && SR && !listening) startListen(); }
 function startPrewave(){
@@ -1476,16 +1472,13 @@ cv.addEventListener('pointermove', ev => {
   joyKnob.style.transform = `translate(${nx * k * JOY_R}px, ${ny * k * JOY_R}px)`;
   if (G.state !== 'play' && G.state !== 'prewave') return;
   if (!dog.awake || dog.battery <= 0) return;
-  // 로봇개 기준 조종: 위로 끌면 앞으로, 아래로 끌면 뒤로, 왼쪽·오른쪽으로 끌면 그쪽으로 몸을 돌림
-  const fwd = Math.max(-1, Math.min(1, -dy / JOY_R)), turn = Math.max(-1, Math.min(1, dx / JOY_R));
-  dog.mode = 'joy'; dog.joyFwd = Math.abs(dy) < 10 ? 0 : fwd; dog.joyTurn = Math.abs(dx) < 10 ? 0 : turn;
-  dog.target = null; targetMark.visible = false;
-  const m = Math.abs(dog.joyFwd); dog.speed = m > .85 ? 'fast' : m < .35 ? 'slow' : 'normal';
-  joyEl.classList.toggle('back', dog.joyFwd < 0); joyEl.classList.toggle('turnL', dog.joyTurn < 0); joyEl.classList.toggle('turnR', dog.joyTurn > 0); joyEl.classList.toggle('fwd', dog.joyFwd > 0);
+  // 화면 위쪽 = 북쪽(-z), 오른쪽 = 동쪽(+x) → 손가락을 끄는 방향이 곧 로봇개가 달리는 방향 (몸을 그쪽으로 돌린 뒤 곧장 감)
+  dog.mode = 'joy'; dog.joyMag = k; dog.wantHeading = Math.atan2(nx, ny); dog.target = null; targetMark.visible = false;
+  dog.speed = k > .85 ? 'fast' : k < .35 ? 'slow' : 'normal';
 });
 function joyEnd(ev){
   if (!joy || ev.pointerId !== joy.id) return;
-  const wasActive = joy.active; joy = null; joyEl.classList.remove('on', 'fwd', 'back', 'turnL', 'turnR'); joyKnob.style.transform = '';
+  const wasActive = joy.active; joy = null; joyEl.classList.remove('on'); joyKnob.style.transform = '';
   if (wasActive){ if (dog.mode === 'joy'){ dog.mode = 'stop'; dog.speed = 'normal'; } downAt = null; return; }
   // 짧게 톡 누르기 → 그곳으로 걸어가기
   if (!downAt) return; const moved = Math.hypot(ev.clientX - downAt.x, ev.clientY - downAt.y), dt = performance.now() - downAt.t; downAt = null;
@@ -1496,7 +1489,7 @@ function joyEnd(ev){
   for (let t = 1; t < 160; t += .5){ const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t; if (y <= heightAt(x, z)){ hit = new THREE.Vector3(x, 0, z); break; } }
   if (hit) moveTo(hit);
 }
-function joyReset(){ joy = null; joyEl.classList.remove('on', 'fwd', 'back', 'turnL', 'turnR'); joyKnob.style.transform = ''; if (dog.mode === 'joy'){ dog.mode = 'stop'; dog.speed = 'normal'; } }
+function joyReset(){ joy = null; joyEl.classList.remove('on'); joyKnob.style.transform = ''; if (dog.mode === 'joy'){ dog.mode = 'stop'; dog.speed = 'normal'; } }
 cv.addEventListener('pointerup', joyEnd); cv.addEventListener('pointercancel', joyEnd);
 window.addEventListener('pointerup', joyEnd); window.addEventListener('pointercancel', joyEnd);
 window.addEventListener('blur', joyReset); document.addEventListener('visibilitychange', () => { if (document.hidden) joyReset(); });
@@ -1504,7 +1497,7 @@ window.addEventListener('blur', joyReset); document.addEventListener('visibility
 cv.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); }, {passive:false});
 cv.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, {passive:false});
 // 조이스틱 중에 로봇개가 들판 끝이나 바위에 막히면 손가락을 뗄 때까지 계속 밀지 않도록, 움직임이 멈춘 걸 알려 줌
-setInterval(() => { if (joy && joy.active && dog.mode === 'joy' && dog.awake && dog.battery > 0){ const d = dog.pos.distanceTo(dog._joyLast || dog.pos); dog._joyLast = dog.pos.clone(); if (dog.joyFwd && d < .05 && !dog._joyWarnT){ dog._joyWarnT = 1; say('막혔어요! 다른 쪽으로 끌어요'); setTimeout(() => { dog._joyWarnT = 0; }, 2500); } } }, 700);
+setInterval(() => { if (joy && joy.active && dog.mode === 'joy' && dog.awake && dog.battery > 0){ const d = dog.pos.distanceTo(dog._joyLast || dog.pos); dog._joyLast = dog.pos.clone(); if (d < .05 && !dog._joyWarnT){ dog._joyWarnT = 1; say('막혔어요! 다른 쪽으로 끌어요'); setTimeout(() => { dog._joyWarnT = 0; }, 2500); } } }, 700);
 function togglePause(){ if (G.state !== 'play' && G.state !== 'prewave') return; G.paused = !G.paused;
   BGM.pause(G.paused); $('#pauseBtn .lbl').textContent = G.paused ? '계속하기 P' : '일시정지 P'; $('#pauseBtn .ico').textContent = G.paused ? '▶' : 'Ⅱ'; showBanner(G.paused ? '일시정지 — P를 누르면 계속해요' : '', G.paused ? 999 : 0); }
 function toggleMute(){ muted = !muted; $('#muteBtn .lbl').textContent = muted ? '소리 켜기 M' : '소리 M'; $('#muteBtn .ico').textContent = muted ? '✕' : '♪'; }
@@ -1625,9 +1618,10 @@ function update(dt){
       dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 4);
       dog.pos.addScaledVector(fwdVec(dog.heading), dog.sign * speedV * dt); moving = true;
     } else if (dog.mode === 'joy'){
-      // 옆으로 끈 만큼 몸을 돌리고(최대 초당 130도), 위·아래로 끈 쪽으로 전진·후진
-      dog.wantHeading -= (dog.joyTurn || 0) * 2.3 * dt; dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 10);
-      if (dog.joyFwd){ dog.pos.addScaledVector(fwdVec(dog.heading), Math.sign(dog.joyFwd) * speedV * dt); moving = true; }
+      // 끄는 방향으로 몸을 빠르게 돌리고 그 방향으로 곧장 달림 (방향이 크게 다를 땐 먼저 돌고 나서 출발)
+      dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 12);
+      const diff = Math.abs(((dog.wantHeading - dog.heading + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      if (diff < 1.2){ dog.pos.addScaledVector(fwdVec(dog.heading), speedV * dt); moving = true; }
     } else dog.heading = angleTo(dog.heading, dog.wantHeading, dt * 4);
   } else if (dog.awake && dog.mode !== 'stop'){ dog.mode = 'stop'; dog.target = null; targetMark.visible = false; say('배터리 0%! “눈 감아”로 충전해요'); }
   if (moving) dog.battery = Math.max(0, dog.battery - drain * dt);
@@ -1640,7 +1634,7 @@ function update(dt){
   else if (!moving) dog.battery = Math.min(100, dog.battery + 1.5 * dt);
   dogM.g.position.lerp(dog.pos, .5); dogM.g.rotation.y = dog.heading;
   // 걷기 애니메이션
-  dog.walk += dt * (moving ? speedV * 2.6 * (dog.mode === 'dir' ? dog.sign : dog.mode === 'joy' ? (Math.sign(dog.joyFwd) || 1) : 1) : 0);
+  dog.walk += dt * (moving ? speedV * 2.6 * (dog.mode === 'dir' ? dog.sign : 1) : 0);
   dogM.legs.forEach(l => { const a = moving ? .5 : 0; l.pivot.rotation.x = THREE.MathUtils.lerp(l.pivot.rotation.x, Math.sin(dog.walk + l.phase) * a, .3);
     l.knee.rotation.x = THREE.MathUtils.lerp(l.knee.rotation.x, moving ? Math.max(0, -Math.cos(dog.walk + l.phase)) * -.5 : (dog.awake ? 0 : -.6), .3); });
   dogM.body.position.y = THREE.MathUtils.lerp(dogM.body.position.y, 1.2 + (dog.awake ? 0 : -.25) + (moving ? Math.abs(Math.sin(dog.walk)) * .06 : Math.sin(clock.elapsedTime * 2) * .015), .3);
