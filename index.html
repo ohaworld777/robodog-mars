@@ -1278,18 +1278,17 @@ function issue(id){
       done = true; break;
     case 'open':
       if (!dog.awake){ dog.awake = true; setEyes(true); eyeFlash(); say('“눈 떠” 번쩍!'); done = true; }
-      else if (dog.cd.open <= 0){ eyeFlash(); say('“눈 떠” 번쩍!'); done = true; }
-      else say('눈이 부셔요! 잠깐만요');
+      else { eyeFlash(); say('“눈 떠” 번쩍!'); done = true; }
       break;
     case 'red': dog.led = 'red'; applyLed(); say('“빨간불”'); SFX.tower(); done = true; break;
     case 'purple': dog.led = 'purple'; applyLed(); say('“보라불”'); SFX.tower(); done = true; break;
     case 'fire':
-      if (!needAwake()) break; if (dog.cd.fire > 0){ dog.fireQueue = Math.min(3, (dog.fireQueue || 0) + 1); break; } if (!needBattery(1.5)) break;
-      dog.battery -= 1.5; dog.cd.fire = .75; dog.burst = 4; dog.burstT = 0;
+      if (!needAwake()) break; if (!needBattery(1.5)) break;
+      dog.battery -= 1.5; dog.burst = 4; dog.burstT = 0;
       say(nearestEnemy(12) ? '“발사” 피융!' : '“발사”… 근처에 적이 없어요'); done = true; break;
     case 'bark':
-      if (!needAwake()) break; if (dog.cd.bark > 0){ say('목이 아파요… 조금만 기다려요'); break; } if (!needBattery(2.5)) break;
-      dog.battery -= 2.5; dog.cd.bark = 4; dog.barkT = .5; SFX.bark(); say('“짖어” 멍! 멍!');
+      if (!needAwake()) break; if (!needBattery(2.5)) break;
+      dog.battery -= 2.5; dog.barkT = .5; SFX.bark(); say('“짖어” 멍! 멍!');
       ringFx(dog.pos, 0xfff3d6, 6, .6);
       enemies.slice().forEach(e => { const d = e.m.g.position.distanceTo(dog.pos); if (d < 6){
         const push = e.m.g.position.clone().sub(dog.pos).setY(0).normalize().multiplyScalar(e.type === 'golem' ? 6 : 16);
@@ -1300,8 +1299,10 @@ function issue(id){
       dog.battery -= 2; SFX.fart(); say('“방귀” 뿡~');
       makeCloud(); done = true; break;
     case 'sing':
-      if (!needAwake()) break; if (dog.cd.sing > 0){ say('숨 고르는 중… 곧 불러요'); break; } if (!needBattery(3)) break;
-      dog.battery -= 3; dog.cd.sing = 16; const songLen = SFX.song(); BGM.duck(songLen + .5); say('“노래해줘” ♪ 반짝반짝 작은별'); dog.bubbleT = songLen;
+      if (!needAwake()) break; if (!needBattery(3)) break;
+      dog.battery -= 3; let songLen;
+      if (dog.noteT > 0){ songLen = dog.noteT; say('♪ 노래하는 중이에요~'); }   // 이미 부르는 중이면 겹쳐 부르지 않음
+      else { songLen = SFX.song(); BGM.duck(songLen + .5); say('“노래해줘” ♪ 반짝반짝 작은별'); dog.bubbleT = songLen; }
       const before = G.baseHP; G.baseHP = Math.min(G.baseMax, G.baseHP + 3); G.singBoost = songLen; dog.noteT = songLen;
       floatText(BASE_POS.clone().setY(6), G.baseHP > before ? `기지 수리 +${G.baseHP - before}` : '방어탑 힘내라!', '#45dd8a');
       done = true; break;
@@ -1316,7 +1317,7 @@ function moveTo(point){
   targetMark.position.set(dog.target.x, heightAt(dog.target.x, dog.target.z) + .08, dog.target.z); targetMark.visible = true;
 }
 function eyeFlash(){
-  dog.cd.open = 2.5; SFX.flash(); ringFx(dog.pos, 0xffffff, 5.5, .45);
+  SFX.flash(); ringFx(dog.pos, 0xffffff, 5.5, .45);
   const fl = new THREE.PointLight(0xffffff, 6, 14); fl.position.copy(dog.pos).setY(dog.pos.y + 2); scene.add(fl); fx.push({m:fl, t:0, life:.35, kind:'light'});
   enemies.forEach(e => { if (e.m.g.position.distanceTo(dog.pos) < 5.5) e.stun = Math.max(e.stun, 1.6); });
 }
@@ -1337,7 +1338,6 @@ function pickMission(){
   else opts = opts.filter(id => id !== 'open');
   if (dog.mode === 'stop') opts = opts.filter(id => id !== 'stop');
   if (dog.led !== 'green') opts = opts.filter(id => id !== dog.led);
-  ['bark','sing'].forEach(k => { if (dog.cd[k] > 0) opts = opts.filter(id => id !== k); });
   const id = opts[Math.random() * opts.length | 0];
   G.mission = {id, t:9, max:9}; G.lastMission = id;
   $('#missionText').textContent = `로봇개에게 “${CMD[id].ko}”라고 명령하세요!`;
@@ -1576,7 +1576,6 @@ function updateHUD(){
   $('#hpFill').style.background = G.baseHP / G.baseMax < .35 ? 'var(--red)' : 'var(--ok)';
   $('#batNum').textContent = Math.round(dog.battery); $('#batFill').style.width = dog.battery + '%';
   $('#minNum').textContent = G.minerals;
-  ['bark','sing'].forEach(id => { const max = {bark:4, sing:16}[id]; setCd(id, dog.cd[id] > 0 ? dog.cd[id] / max : 0); });
   const eyeTxt = dog.awake ? '눈 감아' : '눈 떠'; if (eyeBtn.textContent !== eyeTxt){ eyeBtn.textContent = eyeTxt; eyeBtn.classList.toggle('asleep', !dog.awake); }
 }
 
@@ -1609,7 +1608,6 @@ function update(dt){
 
   // ---- 로봇개 이동 (자유 이동) ----
   for (const k in dog.cd) dog.cd[k] = Math.max(0, dog.cd[k] - dt);
-  if (dog.fireQueue > 0 && dog.cd.fire <= 0 && dog.burst <= 0){ dog.fireQueue--; issue('fire'); }
   const speedV = {normal:3.4, fast:6.2, slow:1.6}[dog.speed], drain = {normal:.7, fast:1.8, slow:.25}[dog.speed];   // 배터리 사용 시간 2배
   let moving = false;
   if (dog.awake && dog.battery > 0){
