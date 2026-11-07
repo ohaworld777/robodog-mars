@@ -538,10 +538,10 @@ const BGM = (() => {
   };
   Object.values(SONGS).forEach(S => { const ev = {}; let p = 0; S.lead.forEach(([n, l]) => { if (n) ev[p] = [n, l * 2]; p += l * 2; }); S.leadEv = ev; });
   let a = null, master = null, send = null, dly = null, padF = null, bassF = null, fx = null, noiseBuf = null;
-  let timer = null, nextT = 0, pos = 0, mode = null, want = null, on = true, running = false, paused = false, duckUntil = 0, vol = .4;
+  let timer = null, nextT = 0, pos = 0, mode = null, want = null, on = true, running = false, paused = false, duckUntil = 0, vol = .18;
   function ensure(){
     if (master) return true; a = ac(); if (!a) return false;
-    vol = TOUCH ? .28 : .4;   // 폰은 스피커가 마이크와 가까워 더 작게
+    vol = TOUCH ? .11 : .18;   // 음성인식을 방해하지 않게 작게 (폰은 스피커가 마이크와 가까워 더 작게)
     master = a.createGain(); master.gain.value = 0; master.connect(a.destination);
     fx = a.createGain(); fx.gain.value = .9; fx.connect(a.destination);
     send = a.createGain(); send.connect(master);
@@ -581,13 +581,16 @@ const BGM = (() => {
       if (pos % 16 === 0 && want && want !== mode){ mode = want; pos = 0; padF.frequency.setTargetAtTime(SONGS[mode].pad, nextT, .3); }   // 마디 첫 박에서 곡 전환
       const S = SONGS[mode], sd = 60 / S.bpm / 4; schedule(pos, nextT, S, sd); nextT += sd; pos = (pos + 1) % 128;
     }
-    master.gain.setTargetAtTime((muted || !on) ? 0 : now < duckUntil ? vol * .22 : vol, now, .12);
+    // 마이크가 켜져 있으면 더 작게, 말소리가 들어오는 동안은 거의 들리지 않게
+    const base = (typeof listening !== 'undefined' && listening) ? vol * .7 : vol;
+    master.gain.setTargetAtTime((muted || !on) ? 0 : now < duckUntil ? base * .08 : base, now, .1);
   }
   return {
     start(m){ if (!ensure()) return; running = true; paused = false; mode = want = m; pos = 0; nextT = a.currentTime + .05; padF.frequency.value = SONGS[m].pad; clearInterval(timer); timer = setInterval(tick, 50); },
     set(m){ if (!running) this.start(m); else want = m; },
     stop(){ running = false; clearInterval(timer); timer = null; if (master) master.gain.setTargetAtTime(0, a.currentTime, .4); },
     pause(p){ paused = p; if (!master) return; if (p) master.gain.setTargetAtTime(0, a.currentTime, .15); else nextT = a.currentTime + .05; },
+    quiet(sec){ this.duck(sec); },
     duck(sec){ if (a) duckUntil = Math.max(duckUntil, a.currentTime + (sec || 1.5)); },
     toggle(){ on = !on; return on; },
     get on(){ return on; },
@@ -1381,7 +1384,7 @@ function extractCommands(text, final){
 }
 const doneCount = new Map();   // 줄(결과)마다 이미 실행한 명령 수
 function handleSpeech(ev){
-  BGM.duck(1.6);   // 말소리가 들어오는 동안 배경음악을 줄여 인식을 방해하지 않게
+  BGM.duck(2.5);   // 말소리가 들어오는 동안 배경음악을 거의 꺼서 인식을 방해하지 않게
   for (let i = ev.resultIndex; i < ev.results.length; i++){
     const r = ev.results[i], txt = r[0].transcript.trim(); if (!txt) continue;
     showHeardTag(txt);
