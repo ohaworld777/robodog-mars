@@ -653,8 +653,10 @@ const DUNES = {x:-44, z:-56, r:20};                                       // 검
 const DUNE_FIELDS = [DUNES, {x:118, z:-48, r:22}];                       // + 동쪽 모래언덕
 const BIG_CRATER = {x:36, z:50, r:13, depth:5, rim:2.6, peak:2.6};         // 중앙봉이 있는 충돌 분화구
 const BIG_CRATERS = [BIG_CRATER, {x:-20, z:125, r:38, depth:9, rim:3.5, peak:0}, {x:110, z:62, r:22, depth:5, rim:2.4, peak:4.5}];   // + 헬라스 분지, 게일 분화구(중앙에 샤프산)
-const POLAR = {x:0, z:-165, r:48, h:5};                                   // 북극 얼음 모자: 층층이 쌓인 얼음
+const POLAR = {x:0, z:-165, r:48, h:8};                                   // 북극 얼음 모자: 층층이 쌓인 얼음
 const FROST_Z = -118;                                                     // 이 북쪽부터 서리가 덮임
+const ICE_CRACKS = [[-30, -150, 10, -178], [-6, -138, 26, -168], [-24, -186, 18, -192], [14, -140, 30, -150]];   // 빙하 갈라진 틈 (x1,z1,x2,z2)
+function distToSeg(x, z, x1, z1, x2, z2){ const dx = x2 - x1, dz = z2 - z1, t = Math.max(0, Math.min(1, ((x - x1) * dx + (z - z1) * dz) / (dx * dx + dz * dz))); return Math.hypot(x - x1 - dx * t, z - z1 - dz * t); }
 const CRATERS = [[14,6,3.4],[-12,-2,2.6],[10,-14,3],[-30,-20,3.2],[30,14,2.6],[-24,62,6],[8,66,5],[-66,-34,7],[46,-48,5],[-12,-64,6],[72,58,5],
   [-95,110,7],[-130,-70,5],[20,-120,6],[-60,-130,5],[150,-20,6],[140,-80,4.5],[-150,100,6],[40,135,5],[-110,-130,4],[150,110,5],[-165,20,5],[85,-120,4.5]];
 const PLACES = [
@@ -695,7 +697,11 @@ function rawHeight(x, z){
   for (let k = 0; k < BIG_CRATERS.length; k++){ const c = BIG_CRATERS[k]; if (Math.abs(x - c.x) > c.r * 2.6 || Math.abs(z - c.z) > c.r * 2.6) continue;
     const d = Math.hypot(x - c.x, z - c.z); if (d < c.r * 2.6) h += craterH(d, c.r, c.depth, c.rim) + (c.peak ? c.peak * Math.max(0, 1 - d / (c.r * .28)) ** 1.5 : 0); }
   // 북극 얼음 모자 (층층이 쌓인 얼음 테라스)
-  { const d = Math.hypot(x - POLAR.x, z - POLAR.z); if (d < POLAR.r) h += POLAR.h * terrace(1 - ss(d, POLAR.r * .5, POLAR.r), 4); }
+  { const d = Math.hypot(x - POLAR.x, z - POLAR.z); if (d < POLAR.r){
+      const ang = Math.atan2(z - POLAR.z, x - POLAR.x), spiral = .5 + .5 * Math.sin(ang * 3 + d * .25);   // 소용돌이 골
+      h += POLAR.h * terrace(1 - ss(d, POLAR.r * .38, POLAR.r) - spiral * .07, 6) * (1 + .25 * spiral);
+      for (let k = 0; k < ICE_CRACKS.length; k++){ const C = ICE_CRACKS[k]; const dl = distToSeg(x, z, C[0], C[1], C[2], C[3]); if (dl < 1.6) h -= 1.3 * (1 - dl / 1.6) * ss(d, POLAR.r * .9, POLAR.r * .7); }
+  } }
   // 바위 언덕
   h += Math.max(0, 1 - Math.hypot(x - 2, z + 22) / 7) * 2.2;
   // 마리네리스 협곡: 바닥 -8m, 3단 계단 절벽, 가장자리가 살짝 솟음
@@ -741,7 +747,12 @@ function heightAt(x, z){
     if (Math.abs(x - 70) < 40 && distToPolyline(x, z, CANYON) < 6) c.lerp(t.setRGB(BASALT[0] + .08, BASALT[1] + .03, BASALT[2]), .45);
     DUNE_FIELDS.forEach(D => { const dd = Math.hypot(x - D.x, z - D.z); if (dd < D.r + 4) c.lerp(t.setRGB(DUNE[0], DUNE[1], DUNE[2]), .85 * (1 - ss(dd, D.r - 6, D.r + 4))); });
     if (z < FROST_Z) c.lerp(t.setRGB(FROST[0], FROST[1], FROST[2]), ss(z, FROST_Z, FROST_Z - 22) * (.55 + .45 * n) * (slope < .25 ? 1 : .4));
-    { const dp = Math.hypot(x - POLAR.x, z - POLAR.z); if (dp < POLAR.r) c.lerp(t.setRGB(.93, .96, 1), .9 * (1 - ss(dp, POLAR.r * .6, POLAR.r))); }   // 얼음 모자는 푸르스름한 흰색
+    { const dp = Math.hypot(x - POLAR.x, z - POLAR.z); if (dp < POLAR.r){ const k = 1 - ss(dp, POLAR.r * .7, POLAR.r), hi = (y - 1) / (POLAR.h * 1.3);
+        const vein = .5 + .5 * Math.sin(x * .9 + Math.sin(z * .7) * 2) * Math.cos(z * .55 + x * .2);                // 얼음 결 무늬
+        c.lerp(t.setRGB(.58 + .18 * hi + .1 * vein, .78 + .1 * hi + .06 * vein, .96), .94 * k);                    // 윗면: 푸르스름한 얼음 (높을수록 희게)
+        c.lerp(t.setRGB(.22, .5, .9), ss(slope, .08, .32) * .92 * k);                                                 // 절벽면·갈라진 틈: 짙푸른 얼음
+        c.lerp(t.setRGB(.86, .62, .58), (slope > .12 && hi < .45 ? .35 : 0) * (.5 + .5 * Math.sin(y * 7)) * k);     // 아래층 분홍 먼지 띠
+        if (((x * 13 + z * 7) | 0) % 11 === 0 && slope < .1) c.lerp(t.setRGB(1, 1, 1), .8 * k); } }                   // 반짝이는 얼음 알갱이
     c.convertSRGBToLinear(); cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
   }
   geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
@@ -1032,6 +1043,57 @@ function mix(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.random()
 const G = {};
 const dog = {};
 const enemies = [], towers = [], pads = [], drops = [], clouds = [], fx = [], beams = [];
+
+/* 북극 빙하 꾸미기: 반투명 얼음 덩어리·기둥, 얼어붙은 호수, 드라이아이스 안개, 떠다니는 얼음 가루 */
+const iceAnim = {mist:[], dust:null};
+(function buildGlacier(){
+  const iceM = new THREE.MeshStandardMaterial({color:0xb4dcfa, roughness:.1, metalness:.12, transparent:true, opacity:.8, flatShading:true, emissive:0x5fb0ee, emissiveIntensity:.12});
+  const deepM = new THREE.MeshStandardMaterial({color:0x9fd6ff, roughness:.2, metalness:.1, transparent:true, opacity:.9, flatShading:true, emissive:0x3f9fe0, emissiveIntensity:.2});
+  const seed = (i) => { const v = Math.sin(i * 127.1 + 311.7) * 43758.5; return v - Math.floor(v); };
+  // 얼음 덩어리(둥근 바위 모양)와 뾰족한 얼음 기둥을 인스턴스로 흩뿌림
+  const blockG = new THREE.IcosahedronGeometry(1, 0), spikeG = new THREE.ConeGeometry(.6, 2.6, 5);
+  const blocks = new THREE.InstancedMesh(blockG, iceM, 70), spikes = new THREE.InstancedMesh(spikeG, deepM, 46);
+  blocks.castShadow = spikes.castShadow = true; blocks.receiveShadow = spikes.receiveShadow = true;
+  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(), S3 = new THREE.Vector3(), P3 = new THREE.Vector3();
+  let nb = 0, nsp = 0;
+  for (let i = 0; i < 400 && (nb < 70 || nsp < 46); i++){
+    const a = seed(i) * 6.283, rr = (.3 + .68 * Math.sqrt(seed(i + 900))) * POLAR.r, x = POLAR.x + Math.cos(a) * rr, z = POLAR.z + Math.sin(a) * rr;
+    if (Math.hypot(x - POLAR.x, z - (POLAR.z + 8)) < 9) continue;                                   // 이름표·가운데 길은 비움
+    const y = heightAt(x, z), edge = rr > POLAR.r * .8;
+    if ((seed(i + 50) < .6 || edge) && nb < 70){ const sc = edge ? 1.6 + seed(i + 7) * 2.2 : .6 + seed(i + 7) * 1.4;
+      E.set(seed(i + 1) * .6, seed(i + 2) * 6.28, seed(i + 3) * .6); Q.setFromEuler(E); S3.set(sc * (1 + seed(i + 4) * .6), sc * (.6 + seed(i + 5) * .7), sc); P3.set(x, y + S3.y * .35, z);
+      blocks.setMatrixAt(nb++, M.compose(P3, Q, S3)); if (sc > 1.3) obstacles.push({x, z, r:sc * .9}); }
+    else if (nsp < 46){ const sc = .7 + seed(i + 8) * 1.6;
+      E.set((seed(i + 1) - .5) * .35, seed(i + 2) * 6.28, (seed(i + 3) - .5) * .35); Q.setFromEuler(E); S3.set(sc, sc * (1 + seed(i + 6)), sc); P3.set(x, y + 1.3 * S3.y * .5, z);
+      spikes.setMatrixAt(nsp++, M.compose(P3, Q, S3)); if (sc > 1.4) obstacles.push({x, z, r:sc * .6}); }
+  }
+  blocks.count = nb; spikes.count = nsp; scene.add(blocks); scene.add(spikes);
+  { const W = 100, cx = Math.round(POLAR.x / SEG) * SEG, cz = Math.round(POLAR.z / SEG) * SEG;   // 땅 격자에 딱 맞춘 중심
+    const g = new THREE.PlaneGeometry(W, W, W / SEG, W / SEG); g.rotateX(-Math.PI / 2); const pa = g.attributes.position, col = new Float32Array(pa.count * 3), cc = new THREE.Color();
+    for (let i = 0; i < pa.count; i++){ const x = cx + pa.getX(i), z = cz + pa.getZ(i), h = rawHeight(x, z); pa.setY(i, h + .05);
+      const hi = Math.max(0, Math.min(1, (h - 1) / POLAR.h)); cc.setRGB(.66 + .24 * hi, .84 + .12 * hi, 1).convertSRGBToLinear(); col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
+    const alpha = canvasTex(256, 256, (gc, w, h) => { const gr = gc.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); gr.addColorStop(0, '#fff'); gr.addColorStop(.8, '#fff'); gr.addColorStop(.93, '#000'); gr.addColorStop(1, '#000'); gc.fillStyle = gr; gc.fillRect(0, 0, w, h); });
+    const sheet = new THREE.Mesh(g, new THREE.MeshStandardMaterial({vertexColors:true, roughness:.18, metalness:.22, transparent:true, opacity:.5, alphaMap:alpha, flatShading:true, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2}));
+    sheet.position.set(cx, 0, cz); sheet.receiveShadow = true; scene.add(sheet); }
+  // 얼어붙은 호수: 거울처럼 매끈한 푸른 얼음판 2곳
+  [[POLAR.x - 14, POLAR.z - 2, 7.5], [POLAR.x + 12, POLAR.z - 14, 5.5]].forEach(([lx, lz, lr]) => {
+    const lake = new THREE.Mesh(new THREE.CircleGeometry(lr, 24), new THREE.MeshStandardMaterial({color:0x7cc0f2, roughness:.03, metalness:.45, transparent:true, opacity:.9, emissive:0x2f86d8, emissiveIntensity:.18}));
+    lake.rotation.x = -Math.PI / 2; let top = 0; for (let k = 0; k < 24; k++){ const aa = k / 24 * 6.283; top = Math.max(top, heightAt(lx + Math.cos(aa) * lr * .9, lz + Math.sin(aa) * lr * .9)); }
+    lake.position.set(lx, top + .12, lz); lake.receiveShadow = true; scene.add(lake);
+    const rim = new THREE.Mesh(new THREE.RingGeometry(lr, lr + .6, 24), new THREE.MeshBasicMaterial({color:0xeaf7ff, transparent:true, opacity:.7, side:THREE.DoubleSide})); rim.rotation.x = -Math.PI / 2; rim.position.set(lx, top + .13, lz); scene.add(rim);
+  });
+  // 드라이아이스 안개: 부드러운 흰 스프라이트가 낮게 떠다님
+  const mistTex = canvasTex(128, 128, (g, w, h) => { const gr = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(.5, 'rgba(230,245,255,.25)'); gr.addColorStop(1, 'rgba(230,245,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  const mistM = new THREE.SpriteMaterial({map:mistTex, transparent:true, depthWrite:false, opacity:.9});
+  for (let i = 0; i < 16; i++){ const a = seed(i + 300) * 6.283, rr = Math.sqrt(seed(i + 400)) * POLAR.r * .95, x = POLAR.x + Math.cos(a) * rr, z = POLAR.z + Math.sin(a) * rr;
+    const sp = new THREE.Sprite(mistM); const sc = 6 + seed(i + 500) * 8; sp.scale.set(sc, sc * .45, 1); sp.position.set(x, heightAt(x, z) + 1.2, z); scene.add(sp); iceAnim.mist.push({sp, x, z, ph:seed(i + 600) * 6.28, sc}); }
+  // 떠다니는 얼음 가루 (반짝이는 점)
+  const n = 220, pts = new Float32Array(n * 3); for (let i = 0; i < n; i++){ const a = seed(i + 700) * 6.283, rr = Math.sqrt(seed(i + 800)) * POLAR.r, x = POLAR.x + Math.cos(a) * rr, z = POLAR.z + Math.sin(a) * rr; pts[i * 3] = x; pts[i * 3 + 1] = heightAt(x, z) + .5 + seed(i + 850) * 5; pts[i * 3 + 2] = z; }
+  const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+  const dotTex = canvasTex(32, 32, (g, w, h) => { const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.4, 'rgba(255,255,255,.8)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  iceAnim.dust = new THREE.Points(dg, new THREE.PointsMaterial({color:0xffffff, size:.5, map:dotTex, transparent:true, opacity:.9, depthWrite:false, alphaTest:.05})); scene.add(iceAnim.dust);
+})();
 
 /* 방어탑: 기초는 미리 세워 두고, 광물을 하나 주울 때마다 한 단씩 올라가 10단이면 완성 */
 const TOWER_STAGES = 10, SEG_H = .55;
@@ -1544,7 +1606,8 @@ function drawMini(){
   // 실제 화성 지형
   let x, y;
   mg.fillStyle = 'rgba(245,240,235,.35)'; [x, y] = P(0, FROST_Z); mg.fillRect(0, 0, W, y);                   // 극지 서리
-  mg.fillStyle = 'rgba(235,245,255,.75)'; [x, y] = P(POLAR.x, POLAR.z); mg.beginPath(); mg.arc(x, y, POLAR.r * sc, 0, 7); mg.fill();   // 북극 얼음 모자
+  mg.fillStyle = 'rgba(225,242,255,.85)'; [x, y] = P(POLAR.x, POLAR.z); mg.beginPath(); mg.arc(x, y, POLAR.r * sc, 0, 7); mg.fill();   // 북극 빙하
+  mg.strokeStyle = 'rgba(120,180,230,.55)'; mg.lineWidth = Math.max(1, 1.2 * K); for (let q = 1; q <= 3; q++){ mg.beginPath(); mg.arc(x, y, POLAR.r * sc * q / 4, 0, 7); mg.stroke(); }
   mg.fillStyle = 'rgba(40,20,16,.55)'; DUNE_FIELDS.forEach(D => { [x, y] = P(D.x, D.z); mg.beginPath(); mg.arc(x, y, D.r * sc, 0, 7); mg.fill(); });   // 검은 모래언덕
   mg.strokeStyle = 'rgba(60,24,14,.85)'; mg.lineWidth = 12 * sc; mg.lineCap = 'round'; mg.beginPath();
   CANYON.forEach(([cx, cz], i) => { const q = P(cx, cz); i ? mg.lineTo(q[0], q[1]) : mg.moveTo(q[0], q[1]); }); mg.stroke();                  // 협곡
@@ -1771,6 +1834,11 @@ function frame(){
   baseGroup.userData.bulb.material.emissiveIntensity = 1 + Math.sin(el * 4);
   if (baseAnim.radar) baseAnim.radar.rotation.y += dt * .8;
   baseAnim.lights.forEach((l, i) => { l.material.emissiveIntensity = .6 + 1.2 * Math.max(0, Math.sin(el * 3 - i * .7)); });
+  if (dog.pos && dog.pos.z < FROST_Z + 30){   // 빙하 근처에 있을 때만 안개·얼음 가루를 움직임
+    iceAnim.mist.forEach(m => { m.sp.position.x = m.x + Math.sin(el * .25 + m.ph) * 3; m.sp.position.z = m.z + Math.cos(el * .2 + m.ph) * 2; m.sp.material.opacity = .55 + .35 * Math.sin(el * .5 + m.ph);
+      m.sp.visible = camera.position.distanceTo(m.sp.position) > m.sc * 1.6; });   // 카메라에 너무 가까운 안개는 숨김 (화면을 덮지 않게)
+    if (iceAnim.dust){ iceAnim.dust.position.y = Math.sin(el * .6) * .4; iceAnim.dust.material.opacity = .55 + .35 * Math.sin(el * 2.3); iceAnim.dust.rotation.y = 0; }
+  }
   baseAnim.windows.forEach(w => { w.material.color.setHex(G.baseHitT > 0 ? 0xff5a3c : 0x7fd4ff); w.material.emissive.setHex(G.baseHitT > 0 ? 0xff5a3c : 0x7fd4ff); });
   if (baseAnim.door){ const open = dog.pos && Math.hypot(dog.pos.x - BASE_POS.x, dog.pos.z - (BASE_POS.z - 4)) < 6; baseAnim.door.position.x = THREE.MathUtils.lerp(baseAnim.door.position.x, open ? 1.45 : 0, .1); }
   if (baseAnim.launchT >= 0){ baseAnim.launchT += dt; const t = baseAnim.launchT; baseAnim.flame.visible = true; baseAnim.flame.scale.set(1, 1 + Math.sin(el * 40) * .2, 1);
